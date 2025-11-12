@@ -23,9 +23,12 @@ public class LawyerProfile {
     @Column(unique = true, nullable = false)
     private Long identification;
 
+    @Column(unique = true, nullable = false)
+    private String email;
     private String fullName;
+
     @Enumerated(EnumType.STRING)
-    private LawyerStatus status; //ACTIVE - INACTIVE
+    private Status status = Status.ACTIVE; //ACTIVE - INACTIVE
     
     @OneToOne
     @JoinColumn(name = "idUser")

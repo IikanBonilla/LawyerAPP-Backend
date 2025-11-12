@@ -25,7 +25,7 @@ public class Process{
     private String id;
 
     @Column(unique = true, nullable = false)
-    private Long identification;
+    private String identification;
 
     private LocalDate radicationDate;
     private String officeName;
@@ -35,6 +35,8 @@ public class Process{
     private String subClassProcess;
     private String recurso;
     private String contenidoDeRadicacion;
+    @Enumerated(EnumType.STRING)
+    private Status status = Status.ACTIVE;
 
     
     @OneToMany(mappedBy = "idProcess", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
