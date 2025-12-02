@@ -7,8 +7,9 @@ import Development.DTOs.GetProcessIdentificationDTO;
 import Development.DTOs.UpdateProcessDTO;
 import Development.Model.Process;
 public interface IProcessServices {
-    public GetProcessDTO findProcessByIdentification(String identification);
-    public List<GetProcessIdentificationDTO> radicadoByClientId(String idClient); 
+    public GetProcessDTO findProcessById(String id);
+    public List<GetProcessIdentificationDTO> radicadoByClientId(String idClient);
+    public void associateClientToProcess(String idProcess, String idClient);
     public Process findById(String id);
     public Process createProcessForClient(String idClient, CreateProcessDTO processDTO);
     public Process updateProcess(String id, UpdateProcessDTO processDTO);

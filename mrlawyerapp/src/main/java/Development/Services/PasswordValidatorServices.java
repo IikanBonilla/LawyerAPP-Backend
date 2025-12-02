@@ -11,7 +11,7 @@ public class PasswordValidatorServices {
         }
 
         // Al menos una minúscula, una mayúscula y un número
-        String passwordPattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$";
+        String passwordPattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%*.,]).{8,}()$";
 
         return password.matches(passwordPattern);
     }

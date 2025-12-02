@@ -1,6 +1,7 @@
 package Development.Controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import Development.DTOs.CreateAudienceDTO;
@@ -21,7 +22,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/audience")
-@CrossOrigin(origins = "*")
 public class AudienceController {
     
     private final Logger logger = LoggerFactory.getLogger(AudienceController.class);
@@ -30,15 +30,16 @@ public class AudienceController {
     private AudienceServices audienceServices;
 
     // ✅ CREATE - Crear nueva audiencia
-    @PostMapping
-    public ResponseEntity<?> createAudience(@RequestBody CreateAudienceDTO audienceDTO) {
+    @PostMapping("/save/{idLawyer}/client/{idClient}")
+    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    public ResponseEntity<?> createAudience(@PathVariable String idLawyer, @PathVariable String idClient, @RequestBody CreateAudienceDTO audienceDTO) {
         try {
-            logger.info("Creando nueva audiencia para proceso: {}", audienceDTO.getIdProcess());
+            logger.info("Creando nueva audiencia para Cliente: {}", idClient);
             
-            Audience audience = audienceServices.save(audienceDTO);
+            Audience audience = audienceServices.saveForClient(idLawyer, idClient, audienceDTO);
             
-            logger.info("Audiencia creada exitosamente - ID: {}, Proceso: {}", 
-                       audience.getId(), audienceDTO.getIdProcess());
+            logger.info("Audiencia creada exitosamente - ID: {}, Cliente: {}", 
+                       audience.getId(), idClient);
             
             return ResponseEntity.ok(audience);
             
@@ -58,7 +59,7 @@ public class AudienceController {
         try {
             logger.info("Buscando audiencia ID: {}", id);
             
-            Audience audience = audienceServices.findById(id);
+            GetAudienceDTO audience = audienceServices.findById(id);
             
             logger.info("Audiencia encontrada - ID: {}", id);
             return ResponseEntity.ok(audience);
@@ -74,7 +75,8 @@ public class AudienceController {
     }
 
     // ✅ UPDATE - Actualizar audiencia
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
+    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
     public ResponseEntity<?> updateAudience(
             @PathVariable String id,
             @RequestBody UpdateAudienceDTO updateDTO) {
@@ -97,7 +99,8 @@ public class AudienceController {
     }
 
     // ✅ DELETE - Eliminar audiencia
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
     public ResponseEntity<?> deleteAudience(@PathVariable String id) {
         try {
             logger.info("Eliminando audiencia ID: {}", id);
@@ -142,19 +145,19 @@ public class AudienceController {
         }
     }
 
-    // ✅ GET BY PROCESS - Obtener audiencias por proceso
-    @GetMapping("/process/{idProcess}")
-    public ResponseEntity<?> getAudiencesByProcess(@PathVariable String idProcess) {
+    // ✅ GET BY USER - Obtener audiencias por usuario
+    @GetMapping("/user/{idUser}")
+    public ResponseEntity<?> getAudiencesByUser(@PathVariable String idUser) {
         try {
-            logger.info("Buscando audiencias para proceso ID: {}", idProcess);
+            logger.info("Buscando audiencias para Usuario ID: {}", idUser);
             
-            List<GetAudienceDTO> audiences = audienceServices.findByProcess(idProcess);
+            List<GetAudienceDTO> audiences = audienceServices.findByUser(idUser);
             
-            logger.info("Encontradas {} audiencias para proceso {}", audiences.size(), idProcess);
+            logger.info("Encontradas {} audiencias para usuario {}", audiences.size(), idUser);
             return ResponseEntity.ok(audiences);
             
         } catch (EntityNotFoundException ex) {
-            logger.warn("Proceso no encontrado: {}", idProcess);
+            logger.warn("Usuario no encontrado: {}", idUser);
             return ResponseEntity.notFound().build();
             
         } catch (RuntimeException ex) {
@@ -168,12 +171,12 @@ public class AudienceController {
     }
 
     // ✅ GET BY STATUS - Obtener audiencias por estado
-    @GetMapping("/status/{status}")
-    public ResponseEntity<?> getAudiencesByStatus(@PathVariable Status status) {
+    @GetMapping("user/{idUser}/status/{status}")
+    public ResponseEntity<?> getAudiencesByStatus(@PathVariable String idUser, @PathVariable Status status) {
         try {
             logger.info("Buscando audiencias con estado: {}", status);
             
-            List<Audience> audiences = audienceServices.findByStatus(status);
+            List<GetAudienceDTO> audiences = audienceServices.findByStatus(idUser, status);
             
             logger.info("Encontradas {} audiencias con estado {}", audiences.size(), status);
             return ResponseEntity.ok(audiences);
@@ -184,8 +187,9 @@ public class AudienceController {
         }
     }
 
-    // ✅ PATCH STATUS - Cambiar estado de audiencia
+    // PATCH STATUS - Cambiar estado de audiencia
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
     public ResponseEntity<?> updateAudienceStatus(
             @PathVariable String id,
             @RequestParam Status status) {

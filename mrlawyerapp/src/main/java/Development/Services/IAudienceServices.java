@@ -10,11 +10,11 @@ import Development.Model.Status;
 
 public interface IAudienceServices {
     public List<GetAudienceDTO> findByClient(String idClient);
-    public List<GetAudienceDTO> findByProcess(String idProcess);
+    public List<GetAudienceDTO> findByUser(String idUser);
     public Audience update(String id, UpdateAudienceDTO updateDTO);
-    public Audience save(CreateAudienceDTO audienceDTO);
-    public Audience findById(String id);
+    public Audience saveForClient(String idLawyer, String idClient, CreateAudienceDTO audienceDTO);
+    public GetAudienceDTO findById(String id);
     public void delete(String id);
-    public List<Audience> findByStatus(Status status);
+    public List<GetAudienceDTO> findByStatus(String idUser, Status status);
 
 }

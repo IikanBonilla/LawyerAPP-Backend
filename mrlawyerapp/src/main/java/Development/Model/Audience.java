@@ -1,17 +1,17 @@
 package Development.Model;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import lombok.Data;
 
 @Entity
-@Table(name = "Audience")
+@Table(name="Audience")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,13 +22,20 @@ public class Audience {
 
     private String address;
     private String meetingLink;
-    private LocalDate date;
+    private LocalDateTime audience_date;
     @Enumerated(EnumType.STRING)
     private Status status = Status.PENDING;
 
     @ToString.Exclude
     @JsonBackReference
     @ManyToOne
-    @JoinColumn(name = "idProcess")
-    private Process idProcess;
+    @JoinColumn(name = "idClient")
+    private Client idClient;
+    
+    @ToString.Exclude
+    @JsonBackReference
+    @ManyToOne
+    @JoinColumn(name = "idLawyer")
+    private LawyerProfile idLawyer;
+
 }

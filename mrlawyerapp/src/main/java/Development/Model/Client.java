@@ -29,6 +29,8 @@ public class Client {
         private String lastName;
         private String email;
         private Long phoneNumber;
+        @Enumerated(EnumType.STRING)
+        private Status status = Status.ACTIVE;
         
         @ToString.Exclude
         @JsonIgnore
@@ -37,13 +39,20 @@ public class Client {
         
         @ToString.Exclude
         @JsonIgnore
-        @OneToMany(mappedBy = "idClient", fetch = FetchType.LAZY)
-        private List<ClientLawyer> lawyers = new ArrayList<>();
+        @ManyToOne
+        @JoinColumn(name = "idLawyer")
+        private LawyerProfile idLawyer;
 
         @ToString.Exclude
         @JsonManagedReference
         @OneToMany(mappedBy = "idClient", fetch = FetchType.LAZY)
         private List<Document> documents = new ArrayList<>();
+
+        @ToString.Exclude
+        @JsonManagedReference
+        @OneToMany(mappedBy = "idClient", fetch = FetchType.LAZY)
+        private List<Audience> audiences = new ArrayList<>();
+
 
 
 }

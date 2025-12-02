@@ -5,6 +5,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,21 +27,15 @@ import java.util.stream.Collectors;
 
 // IOException
 import java.io.IOException;
+
+import Development.DTOs.DocumentMetadataDTO;
+import Development.DTOs.DocumentResponseDTO;
 import Development.Model.Document;
 import Development.Services.DocumentServices;
-
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 @RestController
 
 @RequestMapping("/api/document")
-
-@CrossOrigin(origins = "*")
 public class DocumentController {
     
     private final Logger logger = LoggerFactory.getLogger(DocumentController.class);
@@ -50,13 +45,14 @@ public class DocumentController {
 
     // ✅ UPLOAD - Guardar documento para Cliente
     @PostMapping("/client/{idClient}/upload")
+    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
     public ResponseEntity<?> uploadDocumentForClient(
             @PathVariable String idClient,
             @RequestParam("file") MultipartFile file) {
         try {
             logger.info("Subiendo documento para cliente ID: {} - Archivo: {}", idClient, file.getOriginalFilename());
             
-            Document document = documentServices.saveDocumentForClient(file, idClient);
+            DocumentResponseDTO document = documentServices.saveDocumentForClient(file, idClient);
             
             logger.info("Documento guardado exitosamente - ID: {}, Cliente: {}", document.getId(), idClient);
             
@@ -85,13 +81,14 @@ public class DocumentController {
 
     // ✅ UPLOAD - Guardar documento para Proceso
     @PostMapping("/process/{idProcess}/upload")
+    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
     public ResponseEntity<?> uploadDocumentForProcess(
             @PathVariable String idProcess,
             @RequestParam("file") MultipartFile file) {
         try {
             logger.info("Subiendo documento para proceso ID: {} - Archivo: {}", idProcess, file.getOriginalFilename());
             
-            Document document = documentServices.saveDocumentForProcess(file, idProcess);
+            DocumentResponseDTO document = documentServices.saveDocumentForProcess(file, idProcess);
             
             logger.info("Documento guardado exitosamente - ID: {}, Proceso: {}", document.getId(), idProcess);
             
@@ -183,7 +180,8 @@ public class DocumentController {
     }
 
     // ✅ DELETE - Eliminar documento
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/delete")
+    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
     public ResponseEntity<?> deleteDocument(@PathVariable String id) {
         try {
             logger.info("Eliminando documento ID: {}", id);
@@ -239,7 +237,7 @@ public class DocumentController {
         try {
             logger.info("Buscando documentos para cliente ID: {}", idClient);
             
-            List<Document> documents = documentServices.getDocumentsByIdClient(idClient);
+            List<DocumentMetadataDTO> documents = documentServices.getDocumentsByIdClient(idClient);
             
             logger.info("Encontrados {} documentos para cliente {}", documents.size(), idClient);
             
@@ -268,7 +266,7 @@ public class DocumentController {
         try {
             logger.info("Buscando documentos para proceso ID: {}", idProcess);
             
-            List<Document> documents = documentServices.getDocumentsByIdProcess(idProcess);
+            List<DocumentMetadataDTO> documents = documentServices.getDocumentsByIdProcess(idProcess);
             
             logger.info("Encontrados {} documentos para proceso {}", documents.size(), idProcess);
             

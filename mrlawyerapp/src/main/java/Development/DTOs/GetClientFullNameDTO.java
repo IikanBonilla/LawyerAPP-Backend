@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GetClientFullNameDTO {
+    private String id;
     private String firstName;
     private String lastName;
 

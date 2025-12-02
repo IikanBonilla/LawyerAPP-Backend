@@ -1,5 +1,6 @@
 package Development.Services;
 
+import Development.Model.Role;
 import Development.Model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -24,22 +25,41 @@ public class JwtServices {
     @Value("${app.jwt.expiration}")
     private long jwtExpiration;
 
-    public String generateToken(User user) {
+    
+    // Método para extraer lawFirmId del token
+    public String extractLawFirmId(String token) {
+        return extractClaim(token, claims -> claims.get("lawFirmId", String.class));
+    }
+
+    // Método para extraer userId del token
+    public String extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("idUser", String.class));
+    }
+
+    //  Método para extraer role del token
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> claims.get("role", String.class));
+    }
+
+    public String generateToken(User user, String lawFirmId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", user.getRole());
         claims.put("idUser", user.getId());
-        return generateToken(claims, user.getUsername());
-    }
-
-    private String generateToken(Map<String, Object> extraClaims, String username) {
+        
+        // ✅ CORREGIDO: Solo agregar lawFirmId si no es SUPER_ADMIN y lawFirmId no es null
+        if (user.getRole() != Role.SUPER_ADMIN && lawFirmId != null) {
+            claims.put("lawFirmId", lawFirmId);
+        }
+        
         return Jwts.builder()
-                .setClaims(extraClaims)
-                .setSubject(username)
+                .setClaims(claims)
+                .setSubject(user.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);

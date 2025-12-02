@@ -18,5 +18,4 @@ public class CreateProcessDTO {
     private String subClassProcess;
     private String recurso;
     private String contenidoDeRadicacion;
-    private String idLawyer; // Solo el ID del abogado, no el objeto completo
 }

@@ -33,9 +33,9 @@ public class ProceedingServices implements IProceedingServices{
     }
 
     @Override
-    public Proceeding save(CreateProceedingDTO proceedingDTO) {
-        Process process = processRepository.findById(proceedingDTO.getIdProcess()).orElseThrow(
-        () -> new EntityNotFoundException("Proceso no encontrado: " + proceedingDTO.getIdProcess())
+    public Proceeding createProceedingForProcess(String idProcess, CreateProceedingDTO proceedingDTO) {
+        Process process = processRepository.findById(idProcess).orElseThrow(
+        () -> new EntityNotFoundException("Proceso no encontrado: " + idProcess)
         );
         
         Proceeding proceeding = new Proceeding();

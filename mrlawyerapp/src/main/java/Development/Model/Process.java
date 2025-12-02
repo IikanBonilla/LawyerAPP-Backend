@@ -38,6 +38,7 @@ public class Process{
     @Enumerated(EnumType.STRING)
     private Status status = Status.ACTIVE;
 
+
     
     @OneToMany(mappedBy = "idProcess", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
@@ -56,10 +57,11 @@ public class Process{
     @ToString.Exclude
     @JsonManagedReference
     private List<Document> documents = new ArrayList<>();
-    
+
+
     @ManyToOne
-    @JsonBackReference
     @ToString.Exclude
+    @JsonBackReference
     @JoinColumn(name = "idLawyer")
     private LawyerProfile idLawyer;
 

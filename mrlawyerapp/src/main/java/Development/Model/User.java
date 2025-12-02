@@ -7,6 +7,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 
 import lombok.Data;
@@ -14,7 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name="User")
+@Table(name="User_Table")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -27,10 +29,18 @@ public class User implements UserDetails{
     private String password;
 
     @Enumerated(EnumType.STRING)
-    private Role role = Role.LAWYER; // ADMIN o LAWYER
+    private UserStatus userStatus = UserStatus.ACTIVE; // ACTIVE, INACTIVE, SUSPENDED
 
-    @OneToOne(mappedBy = "idUser", cascade = CascadeType.ALL)
+    @Enumerated(EnumType.STRING)
+    private Role role; // ADMIN o LAWYER
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "idUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private LawyerProfile lawyerProfile;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "idAdmin", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private LawFirm lawFirm;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -49,21 +59,21 @@ public class User implements UserDetails{
 
     @Override
     public boolean isAccountNonExpired() {
-        return true; // La cuenta nunca expira
+        return userStatus == UserStatus.ACTIVE; // La cuenta nunca expira
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true; // La cuenta nunca se bloquea
+        return userStatus == UserStatus.ACTIVE;  // La cuenta nunca se bloquea
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; // Las credenciales nunca expiran
+        return userStatus == UserStatus.ACTIVE;  // Las credenciales nunca expiran
     }
 
     @Override
     public boolean isEnabled() {
-        return true; // El usuario siempre está habilitado
+        return userStatus == UserStatus.ACTIVE;  // El usuario siempre está habilitado
     }
 }

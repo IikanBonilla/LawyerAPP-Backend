@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,9 +28,7 @@ import jakarta.persistence.EntityNotFoundException;
 //Controller
 @RestController
 //url + localhost
-@RequestMapping("api/clients")
-//Direccion de angular
-@CrossOrigin(origins = "*")
+@RequestMapping("api/proceeding")
 
 public class ProceedingController {
        
@@ -40,15 +38,16 @@ public class ProceedingController {
     private ProceedingServices proceedingServices;
 
     // ✅ CREATE - Crear nueva actuación
-    @PostMapping
-    public ResponseEntity<?> createProceeding(@RequestBody CreateProceedingDTO proceedingDTO) {
+    @PostMapping("/process/{idProcess}/save")
+    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    public ResponseEntity<?> createProceeding(@PathVariable String idProcess, @RequestBody CreateProceedingDTO proceedingDTO) {
         try {
-            logger.info("Creando nueva actuación para proceso: {}", proceedingDTO.getIdProcess());
+            logger.info("Creando nueva actuación para proceso: {}", idProcess);
             
-            Proceeding proceeding = proceedingServices.save(proceedingDTO);
+            Proceeding proceeding = proceedingServices.createProceedingForProcess(idProcess, proceedingDTO);
             
             logger.info("Actuación creada exitosamente - ID: {}, Proceso: {}", 
-                       proceeding.getId(), proceedingDTO.getIdProcess());
+                       proceeding.getId(), idProcess);
             
             return ResponseEntity.ok(proceeding);
             
@@ -83,8 +82,9 @@ public class ProceedingController {
         }
     }
 
-    // ✅ DELETE - Eliminar actuación
-    @DeleteMapping("/{id}")
+    // DELETE - Eliminar actuación
+    @DeleteMapping("/delete/{id}")
+    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
     public ResponseEntity<?> deleteProceeding(@PathVariable String id) {
         try {
             logger.info("Eliminando actuación ID: {}", id);
@@ -104,7 +104,7 @@ public class ProceedingController {
         }
     }
 
-    // ✅ GET BY PROCESS - Obtener actuaciones por proceso
+    // GET BY PROCESS - Obtener actuaciones por proceso
     @GetMapping("/process/{idProcess}")
     public ResponseEntity<?> getProceedingsByProcess(@PathVariable String idProcess) {
         try {
@@ -129,19 +129,4 @@ public class ProceedingController {
         }
     }
 
-    // ✅ GET ALL - Obtener todas las actuaciones (si necesitas)
-    @GetMapping
-    public ResponseEntity<?> getAllProceedings() {
-        try {
-            logger.info("Obteniendo todas las actuaciones");
-            // Nota: Necesitarías agregar este método en tu servicio
-            // List<Proceeding> proceedings = proceedingServices.findAll();
-            // return ResponseEntity.ok(proceedings);
-            return ResponseEntity.ok("Endpoint en desarrollo");
-            
-        } catch (Exception ex) {
-            logger.error("Error obteniendo actuaciones: {}", ex.getMessage());
-            return ResponseEntity.internalServerError().body("Error interno al obtener actuaciones");
-        }
-    }
 }

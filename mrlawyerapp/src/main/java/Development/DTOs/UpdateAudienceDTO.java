@@ -1,6 +1,6 @@
 package Development.DTOs;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import Development.Model.Status;
 import lombok.AllArgsConstructor;
@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UpdateAudienceDTO{
     private String meetingLink;
-    private LocalDate date;
+    private LocalDateTime audience_date;
     private Status status;
 }

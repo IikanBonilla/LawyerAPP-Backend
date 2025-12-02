@@ -1,5 +1,8 @@
 package Development.DTOs;
 
+import Development.Model.Status;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,11 +10,13 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CreateClientDTO {
+public class ClientDTO {
+    private String id;
     private Long identification;
     private String firstName;
     private String lastName;
     private String email;
     private Long phoneNumber;
-    private String idLawyer; // Opcional: ID del abogado que crea el cliente
+    @Enumerated(EnumType.STRING)
+    private Status status;
 }

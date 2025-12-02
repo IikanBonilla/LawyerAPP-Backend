@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GetProcessIdentificationDTO {
+    private String id;
     private String identification;
     private String processType;
 }

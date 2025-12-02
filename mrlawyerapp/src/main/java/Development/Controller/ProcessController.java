@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,16 +44,16 @@ public class ProcessController {
     @Autowired 
     private ClientServices clientService;
     
-     @GetMapping("/radicado/{identification}")
-    public ResponseEntity<?> getProcessByIdentification(@PathVariable String identification) {
+     @GetMapping("/radicado/{id}")
+    public ResponseEntity<?> getProcessById(@PathVariable String id) {
         try {
-            logger.info("Buscando proceso por radicado: {}", identification);
-            GetProcessDTO process = processService.findProcessByIdentification(identification);
-            logger.info("Proceso encontrado - Radicado: {}", identification);
+            logger.info("Buscando proceso por radicado: {}", id);
+            GetProcessDTO process = processService.findProcessById(id);
+            logger.info("Proceso encontrado - Radicado: {}", id);
             return ResponseEntity.ok(process);
             
         } catch (EntityNotFoundException ex) {
-            logger.warn("Proceso no encontrado con radicado: {}", identification);
+            logger.warn("Proceso no encontrado con radicado: {}", id);
             return ResponseEntity.notFound().build();
             
         } catch (Exception ex) {
@@ -62,6 +63,7 @@ public class ProcessController {
     }
      // CREATE - Crear proceso para un cliente
     @PostMapping("/client/{idClient}")
+    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
     public ResponseEntity<?> createProcessForClient(
             @PathVariable String idClient,
             @RequestBody CreateProcessDTO processDTO) {
@@ -107,9 +109,34 @@ public class ProcessController {
         }
     }
 
+    @PostMapping("/{idProcess}/client/{idClient}")
+    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    public ResponseEntity<?> associateClientToProcess(@PathVariable String idProcess,
+            @PathVariable String idClient) {
+        try {
+            logger.info("Asociando cliente {} a proceso {}", idClient, idProcess);
+            processService.associateClientToProcess(idProcess, idClient);
+            logger.info("Cliente asociado exitosamente");
+            return ResponseEntity.ok("Cliente asociado al proceso exitosamente");
+            
+        } catch (EntityNotFoundException ex) {
+            logger.warn("Recurso no encontrado: {}", ex.getMessage());
+            return ResponseEntity.notFound().build();
+            
+        } catch (IllegalStateException ex) {
+            logger.warn("Error de negocio: {}", ex.getMessage());
+            return ResponseEntity.badRequest().body(ex.getMessage());
+            
+        } catch (Exception ex) {
+            logger.error("Error inesperado asociando cliente: {}", ex.getMessage());
+            return ResponseEntity.internalServerError().body("Error interno al asociar cliente");
+        }
+
+    }
 
     //Asociar documento a proceso
     @PostMapping("/{idProcess}/documents/{idDocument}")
+    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
     public ResponseEntity<?> associateDocumentToProcess(
             @PathVariable String idProcess,
             @PathVariable String idDocument) {
@@ -140,6 +167,7 @@ public class ProcessController {
 
     // UPDATE - Actualizar proceso
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
     public ResponseEntity<?> updateProcess(
             @PathVariable String id,
             @RequestBody UpdateProcessDTO processDTO) {
@@ -163,6 +191,7 @@ public class ProcessController {
         }
     }
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
     public ResponseEntity<?> changeProcessStatus(
             @PathVariable String id,
             @RequestParam String status) {
@@ -188,6 +217,7 @@ public class ProcessController {
 
     // DELETE - Eliminar proceso
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
     public ResponseEntity<?> deleteProcess(@PathVariable String id) {
         try {
             logger.info("Eliminando proceso ID: {}", id);

@@ -16,5 +16,4 @@ public class CreateProceedingDTO {
     private LocalDate startTermDate;
     private LocalDate endTermDate;
     private LocalDate registerDate;
-    private String idProcess;
 }

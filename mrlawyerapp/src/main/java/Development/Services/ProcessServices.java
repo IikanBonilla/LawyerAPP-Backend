@@ -14,13 +14,12 @@ import Development.DTOs.UpdateProcessDTO;
 import Development.Model.Client;
 import Development.Model.ClientProcess;
 import Development.Model.Document;
-import Development.Model.LawyerProfile;
 import Development.Model.Process;
 import Development.Model.Status;
 import Development.Repository.ClientProcessRepository;
 import Development.Repository.ClientRepository;
 import Development.Repository.DocumentRepository;
-import Development.Repository.LawyerRepository;
+
 import Development.Repository.ProcessRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -35,8 +34,6 @@ public class ProcessServices implements IProcessServices{
     private ClientProcessRepository clientProcessRepository;
     @Autowired 
     private DocumentRepository documentRepository;
-    @Autowired
-    private LawyerRepository lawyerRepository;
 
     @Override
     public Process createProcessForClient(String idClient, CreateProcessDTO processDTO) {
@@ -62,12 +59,6 @@ public class ProcessServices implements IProcessServices{
         process.setRecurso(processDTO.getRecurso());
         process.setContenidoDeRadicacion(processDTO.getContenidoDeRadicacion());
 
-        // Asignar el abogado si existe en el DTO
-        if (processDTO.getIdLawyer() != null && !processDTO.getIdLawyer().isEmpty()) {
-            LawyerProfile lawyer = lawyerRepository.findById(processDTO.getIdLawyer())
-                .orElseThrow(() -> new EntityNotFoundException("Abogado no encontrado: " + processDTO.getIdLawyer()));
-            process.setIdLawyer(lawyer);
-        }
 
         Process savedProcess = processRepository.save(process);
 
@@ -131,10 +122,10 @@ public class ProcessServices implements IProcessServices{
     }
 
     @Override
-    public GetProcessDTO findProcessByIdentification(String identification) {
-        return processRepository.findByIdentification(identification)
+    public GetProcessDTO findProcessById(String id) {
+        return processRepository.findProcessById(id)
         .orElseThrow(() -> new EntityNotFoundException(
-            "Proceso no encontrado con radicado: " + identification
+            "Proceso no encontrado con id: " + id
         ));
     }
 
@@ -152,6 +143,25 @@ public class ProcessServices implements IProcessServices{
         objDoc.setIdProcess(process);
         documentRepository.save(objDoc);
         return true;
+    }
+
+    @Override
+    public void associateClientToProcess(String idProcess, String idClient) {
+        Process process = processRepository.findById(idProcess)
+        .orElseThrow(() -> new EntityNotFoundException("No existe un proceso con id: " + idProcess));
+
+        Client client = clientRepository.findById(idClient)
+        .orElseThrow(() -> new EntityNotFoundException("No existe un cliente con id: " + idClient));
+
+        boolean exists = clientProcessRepository.existsByIdClientIdAndIdProcessId(idClient, idProcess);
+        if(exists){
+            throw new IllegalStateException("El cliente ya está asociado al proceso");
+        }else{
+            ClientProcess cp = new ClientProcess();
+            cp.setIdClient(client);
+            cp.setIdProcess(process);
+            clientProcessRepository.save(cp);
+        }
     }
 
     @Override
@@ -181,7 +191,7 @@ public class ProcessServices implements IProcessServices{
         
         try {
             
-            List<GetProcessIdentificationDTO> processes = processRepository.findByLawyerAndStatus(idLawyer, status);
+            List<GetProcessIdentificationDTO> processes = processRepository.findByStatus(status);
             
             return processes;
             
@@ -190,6 +200,6 @@ public class ProcessServices implements IProcessServices{
             throw new RuntimeException("Error al buscar procesos por estado: " + ex.getMessage(), ex);
         }
     }
-
+ 
     
 }

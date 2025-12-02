@@ -10,6 +10,12 @@ import lombok.NoArgsConstructor;
 public class AuthResponseDTO {
     private String token;
     private String username;
+    private String lawyerName;
     private String role;
-    private String idLawyer; // Para que el frontend sepa el ID del abogado
+    private String idLawyer;
+    private String idUser;
+    private String idLawFirm; 
+    private String firmName; 
+    private String email;
+    private String lawyerStatus;
 }

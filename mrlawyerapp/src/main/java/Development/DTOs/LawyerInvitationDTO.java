@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AssociateClientLawyerDTO {
-    private String clientId;
-    private String lawyerId;
+public class LawyerInvitationDTO {
+    private String id;
+    private Long identification;
+    private String email;
+    private boolean used;
 }

@@ -13,29 +13,50 @@ public interface AudienceRepository extends JpaRepository<Audience, String>{
 
     @Query("""
         SELECT new Development.DTOs.GetAudienceDTO(
+            a.id,
             a.address,
             a.meetingLink,
-            a.date,
-            a.status
+            a.audience_date,
+            a.status,
+            a.idClient.id
         )
         FROM Audience a
-        WHERE a.idProcess.id = :idProcess
+        WHERE a.idClient.id = :idClient
+        ORDER BY a.audience_date DESC
         """)
-    List<GetAudienceDTO> findByProcessId(@Param("idProcess") String idProcess);
+    List<GetAudienceDTO> findByClientId(@Param("idClient") String idClient);
 
     @Query("""
     SELECT new Development.DTOs.GetAudienceDTO(
-            a.address,
-            a.meetingLink,
-            a.date,
-            a.status
-    ) 
+        a.id,
+        a.address,
+        a.meetingLink,
+        a.audience_date,
+        a.status,
+        a.idClient.id
+    )
     FROM Audience a
-    JOIN a.idProcess p
-    JOIN p.clients cp
-    WHERE cp.idClient.id = :clientId
+    JOIN a.idLawyer l
+    JOIN l.idUser u
+    WHERE u.id = :idUser
+    ORDER BY a.audience_date DESC
     """)
-    List<GetAudienceDTO> findByClientId(@Param("clientId") String clientId);
+    List<GetAudienceDTO> findByUserId(@Param("idUser") String idUser);
 
-    List<Audience> findByStatus(Status status);
+    @Query("""
+    SELECT new Development.DTOs.GetAudienceDTO(
+        a.id,
+        a.address,
+        a.meetingLink,
+        a.audience_date,
+        a.status,
+        a.idClient.id
+    )
+    FROM Audience a
+    JOIN a.idLawyer l
+    JOIN l.idUser u
+    WHERE u.id = :idUser
+    AND a.status = :status
+    """)
+    List<GetAudienceDTO> findByUserAndStatus(@Param("idUser") String idUser, @Param("status") Status status);
 }

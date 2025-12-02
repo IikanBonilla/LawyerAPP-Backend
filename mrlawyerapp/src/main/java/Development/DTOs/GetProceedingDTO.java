@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GetProceedingDTO {
+    private String id;
     private String proceeding;
     private String anotation;
     

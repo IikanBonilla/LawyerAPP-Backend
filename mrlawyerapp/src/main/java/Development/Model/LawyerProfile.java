@@ -3,6 +3,7 @@ import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -30,6 +31,11 @@ public class LawyerProfile {
     @Enumerated(EnumType.STRING)
     private Status status = Status.ACTIVE; //ACTIVE - INACTIVE
     
+    @ManyToOne
+    @JsonBackReference
+    @JoinColumn(name="idLawFirm", nullable = false)
+    private LawFirm idLawFirm;
+
     @OneToOne
     @JoinColumn(name = "idUser")
     private User idUser;
@@ -37,12 +43,22 @@ public class LawyerProfile {
     @ToString.Exclude
     @JsonIgnore
     @OneToMany(mappedBy = "idLawyer", fetch = FetchType.LAZY)
-    private List<ClientLawyer> clients = new ArrayList<>();
+    private List<Client> clients = new ArrayList<>();
+
+    @ToString.Exclude
+    @JsonIgnore
+    @OneToMany(mappedBy = "idLawyer", fetch = FetchType.LAZY)
+    private List<Process> processes = new ArrayList<>();
 
     @ToString.Exclude
     @JsonManagedReference
     @OneToMany(mappedBy = "idLawyer", fetch = FetchType.LAZY)
-    private List<Process> processes = new ArrayList<>();
+    private List<Appointment> appointments = new ArrayList<>();
+
+    @ToString.Exclude
+    @JsonManagedReference
+    @OneToMany(mappedBy = "idLawyer", fetch = FetchType.LAZY)
+    private List<Audience> audiences = new ArrayList<>();
 
 
 }

@@ -11,6 +11,7 @@ public interface ProceedingRepository extends JpaRepository<Proceeding, String>{
     
     @Query("""
             SELECT new Development.DTOs.GetProceedingDTO(
+            p.id,
             p.proceeding,
             p.anotation,
             p.proceedingDate,

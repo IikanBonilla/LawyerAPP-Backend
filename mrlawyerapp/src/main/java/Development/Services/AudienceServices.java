@@ -8,10 +8,12 @@ import Development.DTOs.CreateAudienceDTO;
 import Development.DTOs.GetAudienceDTO;
 import Development.DTOs.UpdateAudienceDTO;
 import Development.Model.Audience;
+import Development.Model.Client;
+import Development.Model.LawyerProfile;
 import Development.Model.Status;
 import Development.Repository.AudienceRepository;
 import Development.Repository.ClientRepository;
-import Development.Repository.ProcessRepository;
+import Development.Repository.LawyerRepository;
 import jakarta.persistence.EntityNotFoundException;
 
 @Service
@@ -21,7 +23,18 @@ public class AudienceServices implements IAudienceServices{
     @Autowired
     private ClientRepository clientRepository;
     @Autowired
-    private ProcessRepository processRepository;
+    private LawyerRepository lawyerRepository;
+
+
+    private GetAudienceDTO convertToAudienceDTO(Audience audience) {
+    GetAudienceDTO dto = new GetAudienceDTO();
+    dto.setAddress(audience.getAddress());
+    dto.setMeetingLink(audience.getMeetingLink());
+    dto.setAudience_date(audience.getAudience_date());
+    dto.setStatus(audience.getStatus());
+    return dto;
+    }
+
     @Override
     public List<GetAudienceDTO> findByClient(String idClient) {
         if(!clientRepository.existsById(idClient)){
@@ -35,29 +48,35 @@ public class AudienceServices implements IAudienceServices{
         }
 
     }
-
-    @Override
-    public List<GetAudienceDTO> findByProcess(String idProcess) {
-        if(!processRepository.existsById(idProcess)) throw new EntityNotFoundException("No existe un processo con el id: " + idProcess);
-        try{
-            return audienceRepository.findByProcessId(idProcess);
-        }catch(Exception ex){
-            throw new RuntimeException("Error al obtener Audiencia para proceso: " + idProcess, ex);
+        @Override
+    public List<GetAudienceDTO> findByUser(String idUser) {
+        if (idUser == null || idUser.trim().isEmpty()) {
+            throw new IllegalArgumentException("ID de usuario inválido");
         }
+        try{
+            return audienceRepository.findByUserId(idUser);
+        }catch(Exception ex){
+
+            throw new RuntimeException("Error al obtener audiencia para el abogado: " + idUser, ex);
+        }
+
     }
 
+
     @Override
-    public Audience save(CreateAudienceDTO audienceDTO) {
+    public Audience saveForClient(String idLawyer, String idClient, CreateAudienceDTO audienceDTO) {
         // 1. Buscar el proceso
-        Development.Model.Process process = processRepository.findById(audienceDTO.getIdProcess())
-            .orElseThrow(() -> new EntityNotFoundException("No existe un proceso con este id: " + audienceDTO.getIdProcess()));
-        
+        Client client = clientRepository.findById(idClient)
+            .orElseThrow(() -> new EntityNotFoundException("No existe un proceso con este id: " + idClient));
+        LawyerProfile lawyer = lawyerRepository.findById(idLawyer)
+            .orElseThrow(() -> new EntityNotFoundException("No existe un proceso con este id: " + idLawyer));
         // 2. Crear la entidad Audience a partir del DTO
         Audience audience = new Audience();
         audience.setAddress(audienceDTO.getAddress());
         audience.setMeetingLink(audienceDTO.getMeetingLink());
-        audience.setDate(audienceDTO.getDate());
-        audience.setIdProcess(process); 
+        audience.setAudience_date(audienceDTO.getAudience_date());
+        audience.setIdClient(client); 
+        audience.setIdLawyer(lawyer);
         audience.setStatus(Status.PENDING); // Valor por defecto
         
         // 3. Guardar y retornar
@@ -74,8 +93,8 @@ public class AudienceServices implements IAudienceServices{
             existingAudience.setMeetingLink(updateDTO.getMeetingLink());
         }
         
-        if (updateDTO.getDate() != null) {
-            existingAudience.setDate(updateDTO.getDate());
+        if (updateDTO.getAudience_date() != null) {
+            existingAudience.setAudience_date(updateDTO.getAudience_date());
         }
         
         if (updateDTO.getStatus() != null) {
@@ -87,9 +106,10 @@ public class AudienceServices implements IAudienceServices{
     }
 
     @Override
-    public Audience findById(String id) {
-            return audienceRepository.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("No existe audiencia con id: " + id));
+    public GetAudienceDTO findById(String id) {
+        Audience audience = audienceRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Audiencia no encontrada"));
+        return convertToAudienceDTO(audience);
     }
 
     @Override
@@ -99,8 +119,11 @@ public class AudienceServices implements IAudienceServices{
     }
 
     @Override
-    public List<Audience> findByStatus(Status status) {
-        return audienceRepository.findByStatus(status);
+    public List<GetAudienceDTO> findByStatus(String idUser, Status status){
+        if (idUser == null || idUser.trim().isEmpty()) {
+            throw new IllegalArgumentException("ID de usuario inválido");
+        }
+        return audienceRepository.findByUserAndStatus(idUser, status);
     }
 
 

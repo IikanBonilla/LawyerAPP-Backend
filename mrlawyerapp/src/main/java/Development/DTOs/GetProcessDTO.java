@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GetProcessDTO {
+    private String id;
     private String identification;
     private LocalDate radicationDate;
     private String officeName;

@@ -2,22 +2,33 @@ package Development.Controller;
 
 import Development.DTOs.AuthResponseDTO;
 import Development.DTOs.LoginRequestDTO;
+import Development.DTOs.RegisterAdminRequestDTO;
 import Development.DTOs.RegisterRequestDTO;
 import Development.Services.AuthServices;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 
 @RequestMapping("/auth")
 
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthServices authService;
+
+    @PostMapping("/register-admin")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<AuthResponseDTO> registerAdmin(@Valid @RequestBody RegisterAdminRequestDTO adminRequest) {
+        AuthResponseDTO response = authService.registerAdmin(adminRequest);
+        return ResponseEntity.ok(response);
+    }
+
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponseDTO> register(@Valid @RequestBody RegisterRequestDTO registerRequest) {
@@ -31,10 +42,4 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // Opcional: Endpoint para verificar si un email está autorizado
-    @GetMapping("/check-email/{email}")
-    public ResponseEntity<Boolean> checkEmail(@PathVariable String email) {
-        // Esto podría ser útil para el frontend para verificar antes del registro
-        return ResponseEntity.ok(true); // O implementar lógica específica
-    }
 }

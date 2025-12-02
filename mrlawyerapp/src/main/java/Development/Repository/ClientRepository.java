@@ -1,49 +1,75 @@
 package Development.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import Development.DTOs.GetClientDTO;
+import Development.DTOs.ClientDTO;
 import Development.DTOs.GetClientFullNameDTO;
 import Development.Model.Client;
+import Development.Model.Status;
 
 public interface ClientRepository extends JpaRepository<Client, String>{
     @Query("""
-        SELECT DISTINCT new Development.DTOs.GetClientDTO(
+        SELECT DISTINCT new Development.DTOs.ClientDTO(
+            c.id,
             c.identification,
             c.firstName,
             c.lastName,
             c.email,
-            c.phoneNumber
+            c.phoneNumber,
+            c.status
         )
-        FROM ClientLawyer cl
-        JOIN cl.idClient c
-        JOIN cl.idLawyer l
+        FROM Client c
+        JOIN c.idLawyer l
         JOIN l.idUser u
         WHERE u.id = :idUser
         ORDER BY c.lastName, c.firstName
         """)
-    List<GetClientDTO> findByUserId(@Param("idUser") String idUser);
+    List<ClientDTO> findByUserId(@Param("idUser") String idUser);
 
-    @Query("""
-            SELECT new Development.DTOs.GetClientDTO(
+        @Query("""
+        SELECT DISTINCT new Development.DTOs.ClientDTO(
+            c.id,
             c.identification,
             c.firstName,
             c.lastName,
             c.email,
-            c.phoneNumber
+            c.phoneNumber,
+            c.status
+        )
+        FROM Client c
+        JOIN c.idLawyer l
+        JOIN l.idUser u
+        WHERE u.id = :idUser
+        AND c.status = :status
+        ORDER BY c.lastName, c.firstName
+        """)
+    List<ClientDTO> findByUserIdAndStatus(@Param("idUser") String idUser, @Param("status") Status status);
+
+    @Query("""
+            SELECT new Development.DTOs.ClientDTO(
+            c.id,
+            c.identification,
+            c.firstName,
+            c.lastName,
+            c.email,
+            c.phoneNumber,
+            c.status
             )
             FROM Client c
             WHERE LOWER(c.firstName) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
             OR LOWER(c.lastName) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
             """)
-    List<GetClientDTO> searchClientsByName(@Param("searchTerm") String searchTerm);
+    List<ClientDTO> searchClientsByName(@Param("searchTerm") String searchTerm);
 
     @Query("""
         SELECT new Development.DTOs.GetClientFullNameDTO(
+            c.id,
             c.firstName,
             c.lastName
         )
@@ -55,4 +81,12 @@ public interface ClientRepository extends JpaRepository<Client, String>{
     List<GetClientFullNameDTO> findByIdProcess(@Param("idProcess") String idProcess);
 
     boolean existsByIdentification(Long identification);
+    
+    @Query("SELECT c FROM Client c WHERE c.id = :idClient AND c.idLawyer.id = :idLawyer")
+    Optional<Client> findByIdAndLawyerId(@Param("idClient") String clientId, @Param("idLawyer") String lawyerId);
+
+    @Modifying
+    @Query(value = "BEGIN pkg_client.delete_client(:id); END;", nativeQuery = true)
+    void deleteClientUsingPackage(@Param("id") String id);
 }
+

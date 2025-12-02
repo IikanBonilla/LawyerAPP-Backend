@@ -7,10 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UpdateClientDTO {
+public class CreateLawyerInvitationDTO {
     private Long identification;
-    private String firstName;
-    private String lastName;
     private String email;
-    private Long phoneNumber;
 }
