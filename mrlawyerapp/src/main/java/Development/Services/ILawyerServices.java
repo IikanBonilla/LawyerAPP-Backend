@@ -1,7 +1,6 @@
 package Development.Services;
 
 import java.util.List;
-import java.util.Optional;
 
 import Development.DTOs.GetLawyerDTO;
 import Development.Model.LawyerProfile;
