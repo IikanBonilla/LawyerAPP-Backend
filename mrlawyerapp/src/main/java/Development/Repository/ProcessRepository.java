@@ -1,0 +1,75 @@
+package Development.Repository;
+
+import java.util.List;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import Development.DTOs.GetProcessDTO;
+import Development.DTOs.GetProcessIdentificationDTO;
+import Development.Model.Process;
+
+public interface ProcessRepository extends JpaRepository<Process, String>{
+        @Query("""  
+        SELECT new Development.DTOs.GetProcessIdentificationDTO(
+            p.id,
+            p.identification,
+            p.processType
+        )
+        FROM Process p 
+        JOIN p.idLawyer l
+        JOIN l.idUser u
+        WHERE u.id = :idUser
+        ORDER BY p.radicationDate desc
+            """)
+    List<GetProcessIdentificationDTO> findByIdUserId(@Param("idUser") String idUser);
+    
+    @Query("""
+        SELECT new Development.DTOs.GetProcessIdentificationDTO(
+            p.id,
+            p.identification,
+            p.processType
+
+        )
+        FROM ClientProcess cp
+        JOIN cp.idProcess p
+        JOIN cp.idClient c
+        WHERE c.id = :idClient
+        ORDER BY p.radicationDate desc
+        """)
+    public List<GetProcessIdentificationDTO> findIdentificationByClientId(@Param("idClient") String idClient);
+
+    @Query("""
+        SELECT new Development.DTOs.GetProcessDTO(
+            p.id,
+            p.identification,
+            p.radicationDate,
+            p.officeName,
+            p.ponente,
+            p.processType,
+            p.processClass,
+            p.subClassProcess,
+            p.recurso,
+            p.contenidoDeRadicacion
+        )
+        FROM Process p
+        WHERE p.id = :id           
+            """)
+    Optional<GetProcessDTO> findProcessById(@Param("id") String id);
+
+
+    boolean existsByIdentification(String identification);
+
+    @Query("""  
+        SELECT new Development.DTOs.GetProcessIdentificationDTO(
+            p.id,
+            p.identification,
+            p.processType
+        )
+        FROM Process p 
+        WHERE p.status = :status
+            """)
+    List<GetProcessIdentificationDTO> findByStatus(@Param("status") String status);
+
+}
