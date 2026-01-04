@@ -10,8 +10,8 @@
 	</parent>
 	<groupId>com.mrapp</groupId>
 	<artifactId>mrlawyerapp</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>mrlawyerapp</name>
+	<version>0.0.2-SNAPSHOT</version>
+	<name>LawyerAPP-v2</name>
 	<description>Sistema de gestión legal MR Asociados</description>
 	<url/>
 	<licenses>
