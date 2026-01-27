@@ -73,7 +73,7 @@ public class ClientController {
     }
 
     @PostMapping("/save/{idLawyer}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> saveClient(@PathVariable String idLawyer,@RequestBody ClientDTO clientDTO) {
         try{
             Client client = clientService.createClientForLawyer(idLawyer, clientDTO);
@@ -92,7 +92,7 @@ public class ClientController {
     }
 
     @PutMapping("/update/{id}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> updateClient(@PathVariable String id, @RequestBody ClientDTO clientDTO) {
         try{
             Client client = clientService.updateClient(id, clientDTO);
@@ -128,7 +128,7 @@ public class ClientController {
     }
 
     @PutMapping("/update-status/{idClient}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> updateStatusClient(@PathVariable String idClient, @RequestParam Status status) {
         try{
             Client client = clientService.updateStatus(idClient, status);
@@ -145,7 +145,7 @@ public class ClientController {
         
     }
     @DeleteMapping("/delete/{idClient}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
         public ResponseEntity<?> deleteClient(@PathVariable String idClient) {
             try {
                 logger.info("Eliminando cliente con ID: {}", idClient);

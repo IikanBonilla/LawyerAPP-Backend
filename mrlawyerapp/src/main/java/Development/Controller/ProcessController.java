@@ -63,7 +63,7 @@ public class ProcessController {
     }
      // CREATE - Crear proceso para un cliente
     @PostMapping("/client/{idClient}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> createProcessForClient(
             @PathVariable String idClient,
             @RequestBody CreateProcessDTO processDTO) {
@@ -110,7 +110,7 @@ public class ProcessController {
     }
 
     @PostMapping("/{idProcess}/client/{idClient}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> associateClientToProcess(@PathVariable String idProcess,
             @PathVariable String idClient) {
         try {
@@ -134,40 +134,10 @@ public class ProcessController {
 
     }
 
-    //Asociar documento a proceso
-    @PostMapping("/{idProcess}/documents/{idDocument}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
-    public ResponseEntity<?> associateDocumentToProcess(
-            @PathVariable String idProcess,
-            @PathVariable String idDocument) {
-        try {
-            logger.info("Asociando documento {} a proceso {}", idDocument, idProcess);
-            boolean success = processService.associateDocumentToProcess(idProcess, idDocument);
-            
-            if (success) {
-                logger.info("Documento asociado exitosamente");
-                return ResponseEntity.ok("Documento asociado al proceso exitosamente");
-            } else {
-                return ResponseEntity.badRequest().body("No se pudo asociar el documento");
-            }
-            
-        } catch (EntityNotFoundException ex) {
-            logger.warn("Recurso no encontrado: {}", ex.getMessage());
-            return ResponseEntity.notFound().build();
-            
-        } catch (RuntimeException ex) {
-            logger.warn("Error de negocio: {}", ex.getMessage());
-            return ResponseEntity.badRequest().body(ex.getMessage());
-            
-        } catch (Exception ex) {
-            logger.error("Error inesperado asociando documento: {}", ex.getMessage());
-            return ResponseEntity.internalServerError().body("Error interno al asociar documento");
-        }
-    }
 
     // UPDATE - Actualizar proceso
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> updateProcess(
             @PathVariable String id,
             @RequestBody UpdateProcessDTO processDTO) {
@@ -191,7 +161,7 @@ public class ProcessController {
         }
     }
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> changeProcessStatus(
             @PathVariable String id,
             @RequestParam String status) {
@@ -217,7 +187,7 @@ public class ProcessController {
 
     // DELETE - Eliminar proceso
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> deleteProcess(@PathVariable String id) {
         try {
             logger.info("Eliminando proceso ID: {}", id);

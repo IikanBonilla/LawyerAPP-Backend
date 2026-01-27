@@ -22,7 +22,6 @@ public class Client {
         @GeneratedValue(strategy = GenerationType.UUID)
         private String id;
 
-        @Column(unique = true, nullable = false)
         private Long identification;
 
         private String firstName;

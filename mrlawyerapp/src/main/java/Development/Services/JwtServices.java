@@ -1,12 +1,12 @@
 package Development.Services;
 
-import Development.Model.Role;
 import Development.Model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -16,6 +16,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+
+
 @Service
 public class JwtServices {
 
@@ -25,7 +27,6 @@ public class JwtServices {
     @Value("${app.jwt.expiration}")
     private long jwtExpiration;
 
-    
     // Método para extraer lawFirmId del token
     public String extractLawFirmId(String token) {
         return extractClaim(token, claims -> claims.get("lawFirmId", String.class));
@@ -46,8 +47,8 @@ public class JwtServices {
         claims.put("role", user.getRole());
         claims.put("idUser", user.getId());
         
-        // ✅ CORREGIDO: Solo agregar lawFirmId si no es SUPER_ADMIN y lawFirmId no es null
-        if (user.getRole() != Role.SUPER_ADMIN && lawFirmId != null) {
+        // Solo agregar lawFirmId si no es null
+        if (lawFirmId != null) {
             claims.put("lawFirmId", lawFirmId);
         }
         

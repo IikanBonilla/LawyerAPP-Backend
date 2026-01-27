@@ -46,7 +46,7 @@ public class AppointmentController {
     
     // Crear cita para un abogado
     @PostMapping("/lawyer/{idLawyer}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> createAppointmentForLawyer(@PathVariable String idLawyer, @RequestBody CreateAppointmentDTO appointmentDTO) {
         try {
             Appointment appointment = appointmentServices.saveForLaywer(idLawyer, appointmentDTO);
@@ -62,7 +62,7 @@ public class AppointmentController {
     
     // Actualizar cita
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> updateAppointment(@PathVariable String id, @RequestBody UpAppointmentDTO appointmentDTO) {
         try {
             Appointment appointment = appointmentServices.update(id, appointmentDTO);
@@ -78,7 +78,7 @@ public class AppointmentController {
    
     // Eliminar cita
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> deleteAppointment(@PathVariable String id) {
         try {
             appointmentServices.delete(id);

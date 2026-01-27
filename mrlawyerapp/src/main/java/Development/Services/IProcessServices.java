@@ -14,7 +14,6 @@ public interface IProcessServices {
     public Process createProcessForClient(String idClient, CreateProcessDTO processDTO);
     public Process updateProcess(String id, UpdateProcessDTO processDTO);
     public void deleteProcess(String id);
-    public boolean associateDocumentToProcess(String idProcess, String idDocument);
     public Process changeProcessStatus(String id, String status);
     public List<GetProcessIdentificationDTO> findProcessByStatus(String idLawyer, String status);
 

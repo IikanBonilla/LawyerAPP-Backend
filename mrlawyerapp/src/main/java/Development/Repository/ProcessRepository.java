@@ -59,7 +59,15 @@ public interface ProcessRepository extends JpaRepository<Process, String>{
     Optional<GetProcessDTO> findProcessById(@Param("id") String id);
 
 
-    boolean existsByIdentification(String identification);
+    @Query("""
+        SELECT CASE WHEN COUNT(p) > 0 THEN TRUE ELSE FALSE END 
+        FROM ClientProcess cp
+        JOIN cp.idProcess p
+        JOIN cp.idClient c
+        WHERE p.identification = :identification
+        AND c.id = :idClient
+            """)
+    boolean existsByIdentificationAndIdClientId(String identification, String idClient);
 
     @Query("""  
         SELECT new Development.DTOs.GetProcessIdentificationDTO(

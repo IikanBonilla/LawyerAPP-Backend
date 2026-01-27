@@ -77,8 +77,8 @@ public class ClientServices implements IClientServices{
             () -> new EntityNotFoundException("No existe un ABOGADO con ID: " + idLawyer)
         );
 
-        //Validar que no exista un cliente con la misma identificacion
-        if(clientRepository.existsByIdentification(clientDTO.getIdentification())){
+        //Validar que no exista un cliente con la misma identificacion para ese abogado
+        if(clientRepository.existsByIdentificationAndIdLawyerId(clientDTO.getIdentification(), idLawyer)){
             throw new IllegalStateException("Ya existe un cliente con identificacion: " + clientDTO.getIdentification());
         }
 
@@ -119,7 +119,7 @@ public class ClientServices implements IClientServices{
         throw new EntityNotFoundException("No existe un proceso con id: " + idProcess);
 
         try{
-            return clientRepository.findByIdProcess(idProcess);
+            return clientRepository.findAllNamesByIdProcess(idProcess);
         }catch(Exception ex){
             throw new RuntimeException("Error al obtener clientes de proceso: " + idProcess);
         }
@@ -181,12 +181,13 @@ public class ClientServices implements IClientServices{
        );
 
         if(!existingClient.getIdentification().equals(clientDTO.getIdentification()) &&
-            clientRepository.existsByIdentification(clientDTO.getIdentification())) {
+            clientRepository.existsByIdentificationAndIdLawyerId(clientDTO.getIdentification(), existingClient.getIdLawyer().getId())) {
                 throw new IllegalStateException("Ya existe un cliente con identificacion: " + clientDTO.getIdentification());
         }
 
         existingClient.setFirstName(clientDTO.getFirstName());
         existingClient.setLastName(clientDTO.getLastName());
+        existingClient.setIdentification(clientDTO.getIdentification());
         existingClient.setEmail(clientDTO.getEmail());
         existingClient.setPhoneNumber(clientDTO.getPhoneNumber());
 

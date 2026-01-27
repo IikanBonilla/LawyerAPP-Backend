@@ -19,7 +19,7 @@ public class Document {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private String type; // "CONTRATO", "PODER", "EVIDENCIA"
+    private String type;
     private String originalName ;
 
     @Lob

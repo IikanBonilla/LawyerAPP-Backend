@@ -1,5 +1,6 @@
 package Development.Model;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -8,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.*;
 
@@ -26,20 +28,24 @@ public class User implements UserDetails{
     private String id;
 
     private String username;
+    
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    private UserStatus userStatus = UserStatus.ACTIVE; // ACTIVE, INACTIVE, SUSPENDED
+    private String email;
 
     @Enumerated(EnumType.STRING)
     private Role role; // ADMIN o LAWYER
 
+    @JsonManagedReference
+    @OneToMany(mappedBy = "idUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ForgotPassword> forgotPassword = new ArrayList<>();
+
     @JsonIgnore
-    @OneToOne(mappedBy = "idUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "idUser", fetch = FetchType.LAZY)
     private LawyerProfile lawyerProfile;
 
     @JsonIgnore
-    @OneToOne(mappedBy = "idAdmin", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "idUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private LawFirm lawFirm;
 
     @Override
@@ -47,7 +53,7 @@ public class User implements UserDetails{
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
-     @Override
+    @Override
     public String getPassword() {
         return this.password;
     }
@@ -57,23 +63,4 @@ public class User implements UserDetails{
         return this.username;
     }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return userStatus == UserStatus.ACTIVE; // La cuenta nunca expira
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return userStatus == UserStatus.ACTIVE;  // La cuenta nunca se bloquea
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return userStatus == UserStatus.ACTIVE;  // Las credenciales nunca expiran
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return userStatus == UserStatus.ACTIVE;  // El usuario siempre está habilitado
-    }
 }

@@ -6,7 +6,6 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -31,11 +30,8 @@ public class LawFirm {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(unique = true, nullable = false)
-    private String firmName;
 
-    @Column(unique = true, nullable = false)
-    private String email;
+    private String firmName;
 
     @ToString.Exclude
     @JsonManagedReference
@@ -50,6 +46,6 @@ public class LawFirm {
     @ToString.Exclude
     @OneToOne
     @JsonIgnore
-    @JoinColumn(name = "idAdmin")
-    private User idAdmin;
+    @JoinColumn(name = "idUser")
+    private User idUser;
 }

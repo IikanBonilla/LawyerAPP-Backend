@@ -7,9 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RegisterAdminRequestDTO {
-    private String username;
+public class ChangePasswordDTO {
     private String password;
-    private String firmName; // Nombre de la firma legal
-    private String email;  //Email de contacto
+    private String repeatPassword;
 }

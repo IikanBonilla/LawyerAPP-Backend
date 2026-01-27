@@ -1,16 +1,18 @@
 package Development.Services;
 
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import Development.DTOs.CreateAudienceDTO;
 import Development.DTOs.GetAudienceDTO;
+import Development.DTOs.GetClientFullNameDTO;
 import Development.DTOs.UpdateAudienceDTO;
 import Development.Model.Audience;
 import Development.Model.Client;
 import Development.Model.LawyerProfile;
-import Development.Model.Status;
 import Development.Repository.AudienceRepository;
 import Development.Repository.ClientRepository;
 import Development.Repository.LawyerRepository;
@@ -31,7 +33,6 @@ public class AudienceServices implements IAudienceServices{
     dto.setAddress(audience.getAddress());
     dto.setMeetingLink(audience.getMeetingLink());
     dto.setAudience_date(audience.getAudience_date());
-    dto.setStatus(audience.getStatus());
     return dto;
     }
 
@@ -77,7 +78,6 @@ public class AudienceServices implements IAudienceServices{
         audience.setAudience_date(audienceDTO.getAudience_date());
         audience.setIdClient(client); 
         audience.setIdLawyer(lawyer);
-        audience.setStatus(Status.PENDING); // Valor por defecto
         
         // 3. Guardar y retornar
         return audienceRepository.save(audience);
@@ -96,11 +96,6 @@ public class AudienceServices implements IAudienceServices{
         if (updateDTO.getAudience_date() != null) {
             existingAudience.setAudience_date(updateDTO.getAudience_date());
         }
-        
-        if (updateDTO.getStatus() != null) {
-            existingAudience.setStatus(updateDTO.getStatus());
-        }
-        
         // 3. Guardar y retornar
         return audienceRepository.save(existingAudience);
     }
@@ -119,12 +114,19 @@ public class AudienceServices implements IAudienceServices{
     }
 
     @Override
-    public List<GetAudienceDTO> findByStatus(String idUser, Status status){
-        if (idUser == null || idUser.trim().isEmpty()) {
-            throw new IllegalArgumentException("ID de usuario inválido");
-        }
-        return audienceRepository.findByUserAndStatus(idUser, status);
-    }
+    public String findClientName(String id, String idClient){
+        audienceRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Audiencia no encontrada"));
 
+        Optional<GetClientFullNameDTO> clientName = clientRepository.findNameById(idClient);
+
+            if(!clientName.isPresent()){
+                throw new EntityNotFoundException("No se encontró el nombre del cliente con el id: " + idClient);
+            }
+
+        return clientName.get().getFullName();
+
+    }
+    
 
 }

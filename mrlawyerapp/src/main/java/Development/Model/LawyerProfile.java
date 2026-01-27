@@ -21,11 +21,9 @@ public class LawyerProfile {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    @Column(unique = true, nullable = false)
+    
     private Long identification;
 
-    @Column(unique = true, nullable = false)
-    private String email;
     private String fullName;
 
     @Enumerated(EnumType.STRING)

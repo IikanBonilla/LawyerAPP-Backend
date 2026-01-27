@@ -15,7 +15,6 @@ import org.springframework.security.core.AuthenticationException;
 import Development.DTOs.AuthResponseDTO;
 import Development.DTOs.GetLawyerDTO;
 import Development.DTOs.LoginRequestDTO;
-import Development.DTOs.RegisterAdminRequestDTO;
 import Development.DTOs.RegisterRequestDTO;
 import Development.Model.LawFirm;
 import Development.Model.LawyerInvitation;
@@ -23,12 +22,10 @@ import Development.Model.LawyerProfile;
 import Development.Model.Role;
 import Development.Model.Status;
 import Development.Model.User;
-import Development.Model.UserStatus;
 import Development.Repository.LawFirmRepository;
 import Development.Repository.LawyerInvitationRepository;
 import Development.Repository.LawyerRepository;
 import Development.Repository.UserRepository;
-import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
@@ -47,69 +44,44 @@ public class AuthServices {
     @Autowired
     private LawFirmRepository lawFirmRepository;
     
-
-    @PostConstruct
-    public void init(){
-        if(userRepository.count() == 0){
-            User superAdmin  = new User();
-            superAdmin.setUsername("iikanAdmin0506");
-            superAdmin.setPassword(passwordEncoder.encode("Iikan123.0506"));
-            superAdmin.setRole(Role.SUPER_ADMIN);
-            superAdmin.setUserStatus(UserStatus.ACTIVE);
-            userRepository.save(superAdmin);
-
-        }
-    }
-
-     public AuthResponseDTO registerAdmin(RegisterAdminRequestDTO registerRequest) {
-        // Validar que el username no exista
-        if (userRepository.existsByUsername(registerRequest.getUsername())) {
-            throw new RuntimeException("El nombre de usuario ya existe");
-        }
-
-        // Validar que el nombre de la firma no exista
-        if (lawFirmRepository.existsByFirmName(registerRequest.getFirmName())) {
-            throw new RuntimeException("Ya existe una firma con ese nombre");
-        }
-
-        // Validar formato de contraseña
-        if (!passwordValidator.isValidPassword(registerRequest.getPassword())) {
-            throw new RuntimeException(passwordValidator.getPasswordRequirements());
-        }
-
-        // Crear el usuario ADMIN
-        User adminUser = new User();
-        adminUser.setUsername(registerRequest.getUsername());
-        adminUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        adminUser.setRole(Role.ADMIN);
-        adminUser.setUserStatus(UserStatus.ACTIVE);
-        User savedAdmin = userRepository.save(adminUser);
-
-        // Crear la LawFirm para el admin
-        LawFirm lawFirm = new LawFirm();
-        lawFirm.setFirmName(registerRequest.getFirmName());
-        lawFirm.setIdAdmin(savedAdmin);
-        lawFirm.setEmail(registerRequest.getEmail());
-        LawFirm savedLawFirm = lawFirmRepository.save(lawFirm);
-
-        // Generar el token JWT
-        String token = jwtService.generateToken(savedAdmin, savedLawFirm.getId());
-
-        return new AuthResponseDTO(
-            token,
-            savedAdmin.getUsername(),
-            "Administrador", // Nombre por defecto para admin
-            savedAdmin.getRole().name(),
-            null, 
-            savedAdmin.getId(),
-            savedLawFirm.getId(),
-            savedLawFirm.getFirmName(),
-            savedLawFirm.getEmail(),
-            null
-        );
-    }
-
     public AuthResponseDTO register(RegisterRequestDTO registerRequest) {
+        if(userRepository.findAll().isEmpty()){
+
+            if(!passwordValidator.isValidPassword(registerRequest.getPassword())){
+                throw new RuntimeException(passwordValidator.getPasswordRequirements());
+            }
+            
+            // Crear el usuario ADMIN
+            User adminUser = new User();
+            adminUser.setUsername(registerRequest.getUsername());
+            adminUser.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+            adminUser.setEmail(registerRequest.getEmail());
+            adminUser.setRole(Role.ADMIN);
+            User savedAdmin = userRepository.save(adminUser);
+
+            // Crear la LawFirm para el admin
+            LawFirm lawFirm = new LawFirm();
+            lawFirm.setFirmName(registerRequest.getFullName()); // Usar fullName como firmName para el primer admin
+            lawFirm.setIdUser(savedAdmin);
+            LawFirm savedLawFirm = lawFirmRepository.save(lawFirm);
+
+            // Generar el token JWT
+            String token = jwtService.generateToken(savedAdmin, savedLawFirm.getId());
+
+            return new AuthResponseDTO(
+                token,
+                savedAdmin.getUsername(),
+                "Administrador", // Nombre por defecto para admin
+                savedAdmin.getRole().name(),
+                null, 
+                savedAdmin.getId(),
+                savedLawFirm.getId(),
+                savedLawFirm.getFirmName(),
+                savedAdmin.getEmail(),
+                null
+            );
+
+        }
         // Validar que el username no exista
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
             throw new RuntimeException("El nombre de usuario ya existe");
@@ -119,10 +91,12 @@ public class AuthServices {
             throw new RuntimeException("Esta identificación ya está siendo usada");
         }
 
-        // Validar invitación en lugar de emails autorizados
+        // Validar invitación 
         LawyerInvitation invitation = invitationRepository
             .findByEmailAndIdentificationAndUsedFalse(registerRequest.getEmail(), registerRequest.getIdentification())
             .orElseThrow(() -> new RuntimeException("No tiene una invitación válida para registrarse. Contacte al administrador de su firma."));
+
+        
 
         // Validar formato de contraseña
         if (!passwordValidator.isValidPassword(registerRequest.getPassword())) {
@@ -138,6 +112,7 @@ public class AuthServices {
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        user.setEmail(registerRequest.getEmail());
         user.setRole(Role.LAWYER);
         User savedUser = userRepository.save(user);
 
@@ -145,7 +120,6 @@ public class AuthServices {
         LawyerProfile lawyer = new LawyerProfile();
         lawyer.setIdentification(registerRequest.getIdentification());
         lawyer.setFullName(registerRequest.getFullName());
-        lawyer.setEmail(registerRequest.getEmail());
         lawyer.setIdUser(savedUser);
         lawyer.setIdLawFirm(invitation.getIdLawFirm()); 
 
@@ -183,12 +157,6 @@ public class AuthServices {
 
             User user = (User) authentication.getPrincipal();
             
-            if(user.getUserStatus() != UserStatus.ACTIVE){
-                String message = user.getUserStatus() == UserStatus.SUSPENDED ?
-                    "Cuenta suspendida. Renueve su suscripción." : 
-                    "Cuenta inactiva. Contacte al administrador.";
-                throw new RuntimeException(message);
-            }
             String idLawFirm = null;
             String firmName = null;
             String fullName = null;
@@ -196,21 +164,14 @@ public class AuthServices {
             String lawyerStatus = null;
             String email = null;
             switch(user.getRole()) {
-                case SUPER_ADMIN:
-                    fullName = "Super Administrador";
-                    idLawFirm = null; // SUPER_ADMIN no pertenece a una firma
-                    firmName = "Sistema Principal";
-                    idLawyer = null;
-                    break;
-                    
                 case ADMIN:
-                    LawFirm lawFirm = lawFirmRepository.findByIdAdminId(user.getId())
+                    LawFirm lawFirm = lawFirmRepository.findByIdUserId(user.getId())
                         .orElseThrow(() -> new RuntimeException("Admin no tiene firma asociada"));
                     idLawFirm = lawFirm.getId();
                     firmName = lawFirm.getFirmName();
                     fullName = "Administrador";
                     idLawyer = null;
-                    email = lawFirm.getEmail();
+                    email = lawFirm.getIdUser().getEmail();
                     break;
                     
                 case LAWYER:

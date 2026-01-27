@@ -35,7 +35,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) // Deshabilitar CSRF
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/login", "/auth/register").permitAll() // Permite todas las solicitudes
+                .requestMatchers("/auth/login", "/auth/register", "/forgotPassword/verifyEmail", "/forgotPassword/verifyOTP/**", "/forgotPassword/changePassword/**").permitAll() // Permite todas las solicitudes
                 .requestMatchers("/auth/register-admin").hasRole("SUPER_ADMIN")
                 .anyRequest().authenticated()
 
@@ -50,7 +50,7 @@ public class SecurityConfig {
         @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://192.168.20.180:4300", "http://172.20.10.5:4300", "http://localhost:4300"));
+        configuration.setAllowedOrigins(Arrays.asList("http://192.168.20.180:4300", "http://172.20.10.5:4300", "http://localhost:4300", "http://192.168.0.110:4300"));
          configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");

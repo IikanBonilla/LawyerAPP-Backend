@@ -45,7 +45,7 @@ public class DocumentController {
 
     // ✅ UPLOAD - Guardar documento para Cliente
     @PostMapping("/client/{idClient}/upload")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> uploadDocumentForClient(
             @PathVariable String idClient,
             @RequestParam("file") MultipartFile file) {
@@ -81,7 +81,7 @@ public class DocumentController {
 
     // ✅ UPLOAD - Guardar documento para Proceso
     @PostMapping("/process/{idProcess}/upload")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> uploadDocumentForProcess(
             @PathVariable String idProcess,
             @RequestParam("file") MultipartFile file) {
@@ -181,7 +181,7 @@ public class DocumentController {
 
     // ✅ DELETE - Eliminar documento
     @DeleteMapping("/{id}/delete")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> deleteDocument(@PathVariable String id) {
         try {
             logger.info("Eliminando documento ID: {}", id);

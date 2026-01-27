@@ -13,12 +13,10 @@ import Development.DTOs.GetProcessIdentificationDTO;
 import Development.DTOs.UpdateProcessDTO;
 import Development.Model.Client;
 import Development.Model.ClientProcess;
-import Development.Model.Document;
 import Development.Model.Process;
 import Development.Model.Status;
 import Development.Repository.ClientProcessRepository;
 import Development.Repository.ClientRepository;
-import Development.Repository.DocumentRepository;
 
 import Development.Repository.ProcessRepository;
 
@@ -32,8 +30,6 @@ public class ProcessServices implements IProcessServices{
     private ClientRepository clientRepository;
     @Autowired
     private ClientProcessRepository clientProcessRepository;
-    @Autowired 
-    private DocumentRepository documentRepository;
 
     @Override
     public Process createProcessForClient(String idClient, CreateProcessDTO processDTO) {
@@ -43,7 +39,7 @@ public class ProcessServices implements IProcessServices{
             );
 
         // Validar que el identification sea único (opcional pero recomendado)
-        if (processRepository.existsByIdentification(processDTO.getIdentification())) {
+        if (processRepository.existsByIdentificationAndIdClientId(processDTO.getIdentification(), idClient)) {
         throw new IllegalStateException("Ya existe un proceso con este identification: " + processDTO.getIdentification());
         }
 
@@ -78,7 +74,7 @@ public class ProcessServices implements IProcessServices{
 
         // Validar identification único (si cambió)
         if (!existingProcess.getIdentification().equals(processDTO.getIdentification()) &&
-            processRepository.existsByIdentification(processDTO.getIdentification())) {
+            processRepository.existsByIdentificationAndIdClientId(processDTO.getIdentification(), clientProcessRepository.findByIdProcessId(id).getIdClient().getId())) {
             throw new IllegalStateException("Ya existe un proceso con este identification: " + processDTO.getIdentification());
         }
 
@@ -129,21 +125,6 @@ public class ProcessServices implements IProcessServices{
         ));
     }
 
-    @Override
-    public boolean associateDocumentToProcess(String idProcess, String idDocument) {
-        if(!documentRepository.existsById(idDocument)) throw new EntityNotFoundException("No se encontró un documento con ese id: " + idDocument);
-        Document objDoc = documentRepository.findById(idDocument).get();
-        
-        if(objDoc.getIdProcess() != null){
-            throw new RuntimeException("El documento ya tiene un proceso asociado con id: " + objDoc.getIdProcess());
-        }
-
-        Process process = processRepository.findById(idProcess).get();
-
-        objDoc.setIdProcess(process);
-        documentRepository.save(objDoc);
-        return true;
-    }
 
     @Override
     public void associateClientToProcess(String idProcess, String idClient) {

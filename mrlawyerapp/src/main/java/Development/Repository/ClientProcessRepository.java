@@ -10,4 +10,6 @@ public interface ClientProcessRepository extends JpaRepository<ClientProcess, St
     boolean existsByIdClientIdAndIdProcessId(String idClient, String idProcess);
     void deleteByIdClientId(String idClient);
     void deleteAllByIdClientId(String idClient);
+
+    ClientProcess findByIdProcessId(String idProcess);
 }

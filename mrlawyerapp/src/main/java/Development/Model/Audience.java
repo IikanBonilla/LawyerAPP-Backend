@@ -23,8 +23,6 @@ public class Audience {
     private String address;
     private String meetingLink;
     private LocalDateTime audience_date;
-    @Enumerated(EnumType.STRING)
-    private Status status = Status.PENDING;
 
     @ToString.Exclude
     @JsonBackReference

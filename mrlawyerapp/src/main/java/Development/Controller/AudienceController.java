@@ -8,7 +8,6 @@ import Development.DTOs.CreateAudienceDTO;
 import Development.DTOs.GetAudienceDTO;
 import Development.DTOs.UpdateAudienceDTO;
 import Development.Model.Audience;
-import Development.Model.Status;
 import Development.Services.AudienceServices;
 import jakarta.persistence.*;
 
@@ -19,6 +18,9 @@ import org.slf4j.LoggerFactory;
 
 
 import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @RestController
 @RequestMapping("/api/audience")
@@ -31,7 +33,7 @@ public class AudienceController {
 
     // ✅ CREATE - Crear nueva audiencia
     @PostMapping("/save/{idLawyer}/client/{idClient}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> createAudience(@PathVariable String idLawyer, @PathVariable String idClient, @RequestBody CreateAudienceDTO audienceDTO) {
         try {
             logger.info("Creando nueva audiencia para Cliente: {}", idClient);
@@ -76,7 +78,7 @@ public class AudienceController {
 
     // ✅ UPDATE - Actualizar audiencia
     @PutMapping("/update/{id}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> updateAudience(
             @PathVariable String id,
             @RequestBody UpdateAudienceDTO updateDTO) {
@@ -100,7 +102,7 @@ public class AudienceController {
 
     // ✅ DELETE - Eliminar audiencia
     @DeleteMapping("/delete/{id}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> deleteAudience(@PathVariable String id) {
         try {
             logger.info("Eliminando audiencia ID: {}", id);
@@ -170,47 +172,25 @@ public class AudienceController {
         }
     }
 
-    // ✅ GET BY STATUS - Obtener audiencias por estado
-    @GetMapping("user/{idUser}/status/{status}")
-    public ResponseEntity<?> getAudiencesByStatus(@PathVariable String idUser, @PathVariable Status status) {
-        try {
-            logger.info("Buscando audiencias con estado: {}", status);
-            
-            List<GetAudienceDTO> audiences = audienceServices.findByStatus(idUser, status);
-            
-            logger.info("Encontradas {} audiencias con estado {}", audiences.size(), status);
-            return ResponseEntity.ok(audiences);
-            
-        } catch (Exception ex) {
-            logger.error("Error obteniendo audiencias por estado: {}", ex.getMessage());
-            return ResponseEntity.internalServerError().body("Error interno al obtener audiencias");
-        }
-    }
-
     // PATCH STATUS - Cambiar estado de audiencia
-    @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
-    public ResponseEntity<?> updateAudienceStatus(
-            @PathVariable String id,
-            @RequestParam Status status) {
+    @GetMapping("/clientName")
+    public ResponseEntity<String> findClientName(@RequestParam String id, @RequestParam String idClient) {
         try {
-            logger.info("Cambiando estado de audiencia {} a: {}", id, status);
-            
-            UpdateAudienceDTO updateDTO = new UpdateAudienceDTO();
-            updateDTO.setStatus(status);
-            
-            Audience audience = audienceServices.update(id, updateDTO);
-            
-            logger.info("Estado de audiencia cambiado exitosamente - ID: {}, Nuevo estado: {}", id, status);
-            return ResponseEntity.ok(audience);
-            
+            logger.info("Buscando nombre del cliente para audiencia ID: {} y cliente ID: {}", id, idClient);
+
+            String clientName = audienceServices.findClientName(id, idClient);
+
+            logger.info("Nombre del cliente encontrado: {}", clientName);
+            return ResponseEntity.ok(clientName);
+
         } catch (EntityNotFoundException ex) {
-            logger.warn("Audiencia no encontrada: {}", id);
+            logger.warn("Cliente no encontrado para audiencia ID: {} y cliente ID: {}", id, idClient);
             return ResponseEntity.notFound().build();
-            
+
         } catch (Exception ex) {
-            logger.error("Error cambiando estado de audiencia: {}", ex.getMessage());
-            return ResponseEntity.internalServerError().body("Error interno al cambiar estado");
+            //logger.error("Error obteniendo nombre del cliente para audiencia ID: {} y cliente ID: {}", id, idClient);
+            return ResponseEntity.internalServerError().body("Error interno al obtener nombre del cliente");
         }
     }
+    
 }

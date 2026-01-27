@@ -7,7 +7,6 @@ import org.springframework.data.repository.query.Param;
 
 import Development.DTOs.GetAudienceDTO;
 import Development.Model.Audience;
-import Development.Model.Status;
 
 public interface AudienceRepository extends JpaRepository<Audience, String>{
 
@@ -17,7 +16,6 @@ public interface AudienceRepository extends JpaRepository<Audience, String>{
             a.address,
             a.meetingLink,
             a.audience_date,
-            a.status,
             a.idClient.id
         )
         FROM Audience a
@@ -32,7 +30,6 @@ public interface AudienceRepository extends JpaRepository<Audience, String>{
         a.address,
         a.meetingLink,
         a.audience_date,
-        a.status,
         a.idClient.id
     )
     FROM Audience a
@@ -43,20 +40,5 @@ public interface AudienceRepository extends JpaRepository<Audience, String>{
     """)
     List<GetAudienceDTO> findByUserId(@Param("idUser") String idUser);
 
-    @Query("""
-    SELECT new Development.DTOs.GetAudienceDTO(
-        a.id,
-        a.address,
-        a.meetingLink,
-        a.audience_date,
-        a.status,
-        a.idClient.id
-    )
-    FROM Audience a
-    JOIN a.idLawyer l
-    JOIN l.idUser u
-    WHERE u.id = :idUser
-    AND a.status = :status
-    """)
-    List<GetAudienceDTO> findByUserAndStatus(@Param("idUser") String idUser, @Param("status") Status status);
+
 }

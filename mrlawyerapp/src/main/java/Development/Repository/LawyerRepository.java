@@ -17,17 +17,20 @@ public interface LawyerRepository extends JpaRepository<LawyerProfile, String>{
         l.id,
         l.identification,
         l.fullName,
-        l.email,
+        l.idUser.email,
         l.idUser.id,
         l.idLawFirm.id,
         l.status
         
     )
     FROM LawyerProfile l
-    WHERE l.idUser.id = :userId
+    WHERE l.idUser.id = ?1
     """)
     GetLawyerDTO findByIdUser(String userId);
+
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM LawyerProfile u WHERE u.idUser.email = ?1")
     boolean existsByEmail(String email); 
+
     boolean existsByIdentification(Long identification);
 
     @Query("""
@@ -35,7 +38,7 @@ public interface LawyerRepository extends JpaRepository<LawyerProfile, String>{
             l.id,
             l.identification,
             l.fullName,
-            l.email,
+            l.idUser.email,
             l.idUser.id,
             l.idLawFirm.id,
             l.status

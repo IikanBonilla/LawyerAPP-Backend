@@ -24,7 +24,7 @@ public class Process{
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(unique = true, nullable = false)
+
     private String identification;
 
     private LocalDate radicationDate;

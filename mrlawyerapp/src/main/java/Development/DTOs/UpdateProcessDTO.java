@@ -17,5 +17,5 @@ public class UpdateProcessDTO {
     private String processClass;
     private String subClassProcess;
     private String recurso;
-    private String contenidoDeRadicacion; 
+    private String contenidoDeRadicacion;
 }

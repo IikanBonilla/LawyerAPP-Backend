@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import Development.DTOs.CreateProceedingDTO;
@@ -39,12 +40,12 @@ public class ProceedingController {
 
     // ✅ CREATE - Crear nueva actuación
     @PostMapping("/process/{idProcess}/save")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
-    public ResponseEntity<?> createProceeding(@PathVariable String idProcess, @RequestBody CreateProceedingDTO proceedingDTO) {
+    @PreAuthorize("hasRole('LAWYER')")
+    public ResponseEntity<?> createProceeding(@PathVariable String idProcess, @RequestBody CreateProceedingDTO proceedingDTO, @RequestParam String userEmail) {
         try {
             logger.info("Creando nueva actuación para proceso: {}", idProcess);
             
-            Proceeding proceeding = proceedingServices.createProceedingForProcess(idProcess, proceedingDTO);
+            Proceeding proceeding = proceedingServices.createProceedingForProcess(idProcess, proceedingDTO, userEmail);
             
             logger.info("Actuación creada exitosamente - ID: {}, Proceso: {}", 
                        proceeding.getId(), idProcess);
@@ -84,7 +85,7 @@ public class ProceedingController {
 
     // DELETE - Eliminar actuación
     @DeleteMapping("/delete/{id}")
-    @PreAuthorize("hasRole('LAWYER') and @LawyerStatusChecker.isActive()")
+    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> deleteProceeding(@PathVariable String id) {
         try {
             logger.info("Eliminando actuación ID: {}", id);
