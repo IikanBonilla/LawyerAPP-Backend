@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "MrlawyerappApplication",
+            "request": "launch",
+            "mainClass": "Development.MrlawyerappApplication",
+            "projectName": ""
+        },
+        {
+            "type": "java",
             "name": "Spring Boot-MrlawyerappApplication<mrlawyerapp>",
             "request": "launch",
             "cwd": "${workspaceFolder}",
