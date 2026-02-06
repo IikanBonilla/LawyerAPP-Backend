@@ -25,12 +25,8 @@ import Development.Model.Proceeding;
 import Development.Services.ProceedingServices;
 import jakarta.persistence.EntityNotFoundException;
 
-
-//Controller
 @RestController
-//url + localhost
 @RequestMapping("api/proceeding")
-
 public class ProceedingController {
        
     private final Logger logger = LoggerFactory.getLogger(ProceedingController.class);

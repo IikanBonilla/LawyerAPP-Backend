@@ -12,9 +12,9 @@ import Development.Model.LawFirm;
 import Development.Model.LawyerInvitation;
 
 public interface LawyerInvitationRepository extends JpaRepository<LawyerInvitation, String>{
-    Optional<LawyerInvitation> findByEmailAndIdentificationAndUsedFalse(String email, Long identification);
+    Optional<LawyerInvitation> findByEmailAndIdentificationAndUsedFalse(String email, String identification);
     boolean existsByEmailAndIdLawFirmAndUsedFalse(String email, LawFirm lawFirm);
-    boolean existsByIdentificationAndIdLawFirmAndUsedFalse(Long Identification, LawFirm lawFirm);
+    boolean existsByIdentificationAndIdLawFirmAndUsedFalse(String Identification, LawFirm lawFirm);
 
     @Query("""
         SELECT DISTINCT new Development.DTOs.LawyerInvitationDTO(

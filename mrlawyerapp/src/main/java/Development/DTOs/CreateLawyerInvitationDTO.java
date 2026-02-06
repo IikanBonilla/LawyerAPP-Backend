@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateLawyerInvitationDTO {
-    private Long identification;
+    private String identification;
     private String email;
 }

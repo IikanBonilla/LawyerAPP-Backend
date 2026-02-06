@@ -10,10 +10,9 @@ public interface IProcessServices {
     public GetProcessDTO findProcessById(String id);
     public List<GetProcessIdentificationDTO> radicadoByClientId(String idClient);
     public void associateClientToProcess(String idProcess, String idClient);
-    public Process findById(String id);
     public Process createProcessForClient(String idClient, CreateProcessDTO processDTO);
     public Process updateProcess(String id, UpdateProcessDTO processDTO);
-    public void deleteProcess(String id);
+    public void deleteProcessDefinitively(String id);
     public Process changeProcessStatus(String id, String status);
     public List<GetProcessIdentificationDTO> findProcessByStatus(String idLawyer, String status);
 

@@ -10,13 +10,14 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Entity
-@Table(name = "Document")
+@Table(name = "document")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Document {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 36)
     private String id;
 
     private String type;

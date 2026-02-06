@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ClientDTO {
     private String id;
-    private Long identification;
+    private String identification;
     private String firstName;
     private String lastName;
     private String email;

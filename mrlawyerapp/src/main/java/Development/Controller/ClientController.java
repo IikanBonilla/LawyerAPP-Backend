@@ -23,12 +23,7 @@ import Development.Services.ClientServices;
 
 import org.springframework.web.bind.annotation.PutMapping;
 
-
-
-
-//Controller
 @RestController
-//url + localhost
 @RequestMapping("/api/client")
 public class ClientController {
     private Logger logger = LoggerFactory.getLogger(Client.class);
@@ -164,12 +159,12 @@ public class ClientController {
             }
         }
 
-    @DeleteMapping("/delete-definitive/{idClient}/user/{idUser}")
+    @DeleteMapping("/delete-definitive/{idClient}")
     @PreAuthorize("hasRole('ADMIN')")
-        public ResponseEntity<?> deleteClientDefinitively(@PathVariable String idClient, @PathVariable String idUser, @RequestBody String password) {
+        public ResponseEntity<?> deleteClientDefinitively(@PathVariable String idClient) {
             try {
                 logger.info("Eliminando definitivamente cliente con ID: {}", idClient);
-                clientService.deleteClientDefinitively(idClient, idUser, password);
+                clientService.deleteClientDefinitively(idClient);
                 
                 return ResponseEntity.ok("Cliente eliminado definitivamente - ID: " + idClient);
                 

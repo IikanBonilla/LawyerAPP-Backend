@@ -13,16 +13,17 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Entity
-@Table(name="Client")
+@Table(name="client")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Client {
         @Id
         @GeneratedValue(strategy = GenerationType.UUID)
+        @Column(length = 36)
         private String id;
 
-        private Long identification;
+        private String identification;
 
         private String firstName;
         private String lastName;
@@ -33,7 +34,7 @@ public class Client {
         
         @ToString.Exclude
         @JsonIgnore
-        @OneToMany(mappedBy = "idClient", fetch = FetchType.LAZY)
+        @OneToMany(mappedBy = "idClient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
         private List<ClientProcess> processes = new ArrayList<>();
         
         @ToString.Exclude
@@ -44,12 +45,12 @@ public class Client {
 
         @ToString.Exclude
         @JsonManagedReference
-        @OneToMany(mappedBy = "idClient", fetch = FetchType.LAZY)
+        @OneToMany(mappedBy = "idClient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
         private List<Document> documents = new ArrayList<>();
 
         @ToString.Exclude
         @JsonManagedReference
-        @OneToMany(mappedBy = "idClient", fetch = FetchType.LAZY)
+        @OneToMany(mappedBy = "idClient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
         private List<Audience> audiences = new ArrayList<>();
 
 

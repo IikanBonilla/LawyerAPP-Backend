@@ -11,20 +11,6 @@ import Development.DTOs.GetProcessIdentificationDTO;
 import Development.Model.Process;
 
 public interface ProcessRepository extends JpaRepository<Process, String>{
-        @Query("""  
-        SELECT new Development.DTOs.GetProcessIdentificationDTO(
-            p.id,
-            p.identification,
-            p.processType
-        )
-        FROM Process p 
-        JOIN p.idLawyer l
-        JOIN l.idUser u
-        WHERE u.id = :idUser
-        ORDER BY p.radicationDate desc
-            """)
-    List<GetProcessIdentificationDTO> findByIdUserId(@Param("idUser") String idUser);
-    
     @Query("""
         SELECT new Development.DTOs.GetProcessIdentificationDTO(
             p.id,
@@ -64,8 +50,8 @@ public interface ProcessRepository extends JpaRepository<Process, String>{
         FROM ClientProcess cp
         JOIN cp.idProcess p
         JOIN cp.idClient c
-        WHERE p.identification = :identification
-        AND c.id = :idClient
+        WHERE p.identification = ?1
+        AND c.id = ?2
             """)
     boolean existsByIdentificationAndIdClientId(String identification, String idClient);
 

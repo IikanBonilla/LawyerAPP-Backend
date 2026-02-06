@@ -3,6 +3,7 @@ package Development.Services;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +14,14 @@ import org.springframework.web.multipart.MultipartFile;
 import Development.DTOs.DocumentMetadataDTO;
 import Development.DTOs.DocumentResponseDTO;
 import Development.Model.Client;
+import Development.Model.ClientProcess;
 import Development.Model.Process;
 import Development.Model.Document;
-
+import Development.Model.LawyerProfile;
 import Development.Repository.DocumentRepository;
 import Development.Repository.ProcessRepository;
 import jakarta.transaction.Transactional;
+import Development.Repository.ClientProcessRepository;
 import Development.Repository.ClientRepository;
 
 
@@ -30,6 +33,10 @@ public class DocumentServices implements IDocumentServices{
     private ClientRepository clientRepository;
     @Autowired 
     private ProcessRepository processRepository;
+    @Autowired
+    private NotificationServices notificationService;
+    @Autowired
+    private ClientProcessRepository clientProcessRepository;
 
     /**
      * Convierte entidad Document a DocumentResponseDTO
@@ -75,7 +82,12 @@ public class DocumentServices implements IDocumentServices{
     document.setData(file.getBytes());
     document.setIdClient(client); // Asignas el proceso completo
     
+    LawyerProfile lawyer = client.getIdLawyer();
+
     Document savedDocument = documentRepository.save(document);
+
+    notificationService.sendNotificationAccount(lawyer.getId(), "DOCUMENTCLIENT_CREATED", savedDocument);
+    notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "DOCUMENTCLIENT_CREATED", savedDocument);
     return convertToResponseDTO(savedDocument);
     }
 
@@ -106,7 +118,15 @@ public class DocumentServices implements IDocumentServices{
         document.setIdProcess(process);
         // idClient queda null
         
+        ClientProcess cp = clientProcessRepository.findByIdProcessId(idProcess);
+
+        LawyerProfile lawyer = cp.getIdClient().getIdLawyer();
         Document savedDocument = documentRepository.save(document);
+
+
+
+        notificationService.sendNotificationAccount(lawyer.getId(), "DOCUMENTPROCESS_CREATED", savedDocument);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "DOCUMENTPROCESS_CREATED", savedDocument);
 
         // Convertir a DTO para respuesta
         return convertToResponseDTO(savedDocument);
@@ -121,10 +141,29 @@ public class DocumentServices implements IDocumentServices{
         Document document = this.documentRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Documento no encontrado con ID: " + id));
 
+        LawyerProfile lawyer = new LawyerProfile();
+
+        if(document.getIdClient() != null && document.getIdProcess() == null){
+            Client client = document.getIdClient();
+            lawyer = client.getIdLawyer();
+        }
+
+        if(document.getIdProcess() != null){
+            Process process = document.getIdProcess();
+            ClientProcess cp = clientProcessRepository.findByIdProcessId(process.getId());
+            lawyer = cp.getIdClient().getIdLawyer();
+        }
+
         document.setIdClient(null);
         document.setIdProcess(null);
 
-        this.documentRepository.deleteById(document.getId());
+
+        documentRepository.deleteById(document.getId());
+
+        Map<String, String> payload = Map.of("idDocument", id);
+
+        notificationService.sendNotificationAccount(lawyer.getId(), "DOCUMENT_DELETED", payload);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "DOCUMENT_DELETED", payload);
     }
 
     @Override

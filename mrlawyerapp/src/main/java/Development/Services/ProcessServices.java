@@ -1,9 +1,9 @@
 package Development.Services;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import Development.DTOs.CreateProcessDTO;
@@ -13,6 +13,7 @@ import Development.DTOs.GetProcessIdentificationDTO;
 import Development.DTOs.UpdateProcessDTO;
 import Development.Model.Client;
 import Development.Model.ClientProcess;
+import Development.Model.LawyerProfile;
 import Development.Model.Process;
 import Development.Model.Status;
 import Development.Repository.ClientProcessRepository;
@@ -30,6 +31,8 @@ public class ProcessServices implements IProcessServices{
     private ClientRepository clientRepository;
     @Autowired
     private ClientProcessRepository clientProcessRepository;
+    @Autowired
+    private NotificationServices notificationService;
 
     @Override
     public Process createProcessForClient(String idClient, CreateProcessDTO processDTO) {
@@ -63,6 +66,11 @@ public class ProcessServices implements IProcessServices{
         clientProcess.setIdClient(client);
         clientProcessRepository.save(clientProcess);
 
+        LawyerProfile lawyer = clientProcess.getIdClient().getIdLawyer();
+
+        notificationService.sendNotificationAccount(lawyer.getId(), "PROCESS_CREATED", savedProcess);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "PROCESS_CREATED", savedProcess);
+
         return savedProcess;
 
     }
@@ -89,24 +97,46 @@ public class ProcessServices implements IProcessServices{
         existingProcess.setRecurso(processDTO.getRecurso());
         existingProcess.setContenidoDeRadicacion(processDTO.getContenidoDeRadicacion());
 
-        return processRepository.save(existingProcess);
+        Process updatedProcess = processRepository.save(existingProcess);
+
+        ClientProcess cp = clientProcessRepository.findByIdProcessId(id);
+
+        LawyerProfile lawyer = cp.getIdClient().getIdLawyer();
+
+        notificationService.sendNotificationAccount(lawyer.getId(), "PROCESS_UPDATED", updatedProcess);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "PROCESS_UPDATED", updatedProcess);
+
+        return updatedProcess;
     }
 
     @Override
-    public void deleteProcess(String id) {
-            try {
-        processRepository.deleteById(id);
-    } catch (EmptyResultDataAccessException ex) {
-        throw new EntityNotFoundException("No existe un proceso con id: " + id);
-    }
-    }
+    public void deleteProcessDefinitively(String idProcess) {
 
-    @Override
-    public Process findById(String id) {
-        return processRepository.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("No existe un proceso con id: " + id));
-    }
+        // Validaciones básicas
+        if (idProcess == null || idProcess.trim().isEmpty()) {
+            throw new IllegalArgumentException("ID de proceso inválido");
+        }
+    
+        if(!processRepository.existsById(idProcess)){
+            throw new IllegalArgumentException("No existe proceso con id: " + idProcess);
+        }
+        
+        ClientProcess cp = clientProcessRepository.findByIdProcessId(idProcess);
+        
+        LawyerProfile lawyer = cp.getIdClient().getIdLawyer();
 
+        // Eliminar en cascada (más eficiente)
+        clientProcessRepository.deleteAllByIdProcessId(idProcess);
+        
+        // Eliminar proceso
+        processRepository.deleteById(idProcess);
+
+        Map<String, String> payload = Map.of("idProcess", idProcess);
+        
+        notificationService.sendNotificationAccount(lawyer.getId(), "PROCESS_DELETED", payload);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "PROCESS_DELETED", payload);
+    }
+    
     @Override
     public List<GetProcessIdentificationDTO> radicadoByClientId(String idClient) {
         if(!clientRepository.existsById(idClient)) throw new EntityNotFoundException("No existe un cliente con id: " + idClient);

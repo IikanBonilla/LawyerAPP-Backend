@@ -7,21 +7,20 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 @Entity
-@Table(name = "Process")
+@Table(name = "process")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Process{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 36)
     private String id;
 
 
@@ -46,7 +45,6 @@ public class Process{
     private List<ClientProcess> clients = new ArrayList<>();
 
 
-
     @OneToMany(mappedBy = "idProcess", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
     @JsonManagedReference
@@ -58,18 +56,5 @@ public class Process{
     @JsonManagedReference
     private List<Document> documents = new ArrayList<>();
 
-
-    @ManyToOne
-    @ToString.Exclude
-    @JsonBackReference
-    @JoinColumn(name = "idLawyer")
-    private LawyerProfile idLawyer;
-
-    private LocalDateTime startDate;
-
-    @PrePersist
-    protected void onCreate(){
-        startDate =  LocalDateTime.now();
-    }
 
 }

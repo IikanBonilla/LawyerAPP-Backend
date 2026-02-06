@@ -103,8 +103,8 @@ public interface ClientRepository extends JpaRepository<Client, String>{
     """)
     Optional<GetClientFullNameDTO> findNameById(String id);
 
-    boolean existsByIdentification(Long identification);
-    boolean existsByIdentificationAndIdLawyerId(Long identification, String idLawyer);
+    boolean existsByIdentification(String identification);
+    boolean existsByIdentificationAndIdLawyerId(String identification, String idLawyer);
     
     @Query("SELECT c FROM Client c WHERE c.id = :idClient AND c.idLawyer.id = :idLawyer")
     Optional<Client> findByIdAndLawyerId(@Param("idClient") String clientId, @Param("idLawyer") String lawyerId);

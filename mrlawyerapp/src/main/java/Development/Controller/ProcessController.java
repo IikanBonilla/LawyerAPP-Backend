@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,14 +28,8 @@ import Development.Services.ClientServices;
 import Development.Services.ProcessServices;
 import jakarta.persistence.EntityNotFoundException;
 
-
-
-//Controller
 @RestController
-//url + localhost
 @RequestMapping("/api/process")
-//Direccion de angular
-@CrossOrigin(origins = "*")
 public class ProcessController {
     private Logger logger = LoggerFactory.getLogger(Process.class);
     @Autowired
@@ -44,7 +37,7 @@ public class ProcessController {
     @Autowired 
     private ClientServices clientService;
     
-     @GetMapping("/radicado/{id}")
+     @GetMapping("/get/{id}")
     public ResponseEntity<?> getProcessById(@PathVariable String id) {
         try {
             logger.info("Buscando proceso por radicado: {}", id);
@@ -62,7 +55,7 @@ public class ProcessController {
         }
     }
      // CREATE - Crear proceso para un cliente
-    @PostMapping("/client/{idClient}")
+    @PostMapping("/save/{idClient}")
     @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> createProcessForClient(
             @PathVariable String idClient,
@@ -109,7 +102,7 @@ public class ProcessController {
         }
     }
 
-    @PostMapping("/{idProcess}/client/{idClient}")
+    @PostMapping("/associate/{idProcess}/client/{idClient}")
     @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> associateClientToProcess(@PathVariable String idProcess,
             @PathVariable String idClient) {
@@ -136,7 +129,7 @@ public class ProcessController {
 
 
     // UPDATE - Actualizar proceso
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> updateProcess(
             @PathVariable String id,
@@ -160,7 +153,7 @@ public class ProcessController {
             return ResponseEntity.internalServerError().body("Error interno al actualizar proceso");
         }
     }
-    @PatchMapping("/{id}/status")
+    @PatchMapping("/update-status/{id}")
     @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> changeProcessStatus(
             @PathVariable String id,
@@ -186,17 +179,17 @@ public class ProcessController {
     }
 
     // DELETE - Eliminar proceso
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('LAWYER')")
-    public ResponseEntity<?> deleteProcess(@PathVariable String id) {
+    @DeleteMapping("/delete-definitive/{idProcess}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteProcessDefinitive(@PathVariable String idProcess) {
         try {
-            logger.info("Eliminando proceso ID: {}", id);
-            processService.deleteProcess(id);
-            logger.info("Proceso eliminado exitosamente - ID: {}", id);
+            logger.info("Eliminando proceso ID: {}", idProcess);
+            processService.deleteProcessDefinitively(idProcess);
+            logger.info("Proceso eliminado exitosamente - ID: {}", idProcess);
             return ResponseEntity.ok("Proceso eliminado exitosamente");
             
         } catch (EntityNotFoundException ex) {
-            logger.warn("Proceso no encontrado: {}", id);
+            logger.warn("Proceso no encontrado: {}", idProcess);
             return ResponseEntity.notFound().build();
             
         } catch (Exception ex) {
@@ -205,7 +198,6 @@ public class ProcessController {
         }
     }
 
-    //
 
     @GetMapping("/{idProcess}/clients")
     public ResponseEntity<?> getClientsByProcessId(@PathVariable String idProcess) {

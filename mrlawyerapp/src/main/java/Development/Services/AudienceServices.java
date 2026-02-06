@@ -1,10 +1,12 @@
 package Development.Services;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import Development.DTOs.CreateAudienceDTO;
 import Development.DTOs.GetAudienceDTO;
@@ -26,6 +28,8 @@ public class AudienceServices implements IAudienceServices{
     private ClientRepository clientRepository;
     @Autowired
     private LawyerRepository lawyerRepository;
+    @Autowired
+    private NotificationServices notificationService;
 
 
     private GetAudienceDTO convertToAudienceDTO(Audience audience) {
@@ -64,6 +68,7 @@ public class AudienceServices implements IAudienceServices{
     }
 
 
+    @Transactional
     @Override
     public Audience saveForClient(String idLawyer, String idClient, CreateAudienceDTO audienceDTO) {
         // 1. Buscar el proceso
@@ -79,10 +84,15 @@ public class AudienceServices implements IAudienceServices{
         audience.setIdClient(client); 
         audience.setIdLawyer(lawyer);
         
-        // 3. Guardar y retornar
-        return audienceRepository.save(audience);
+        Audience savedAudience = audienceRepository.save(audience);
+
+        notificationService.sendNotificationAccount(lawyer.getId(), "AUDIENCE_CREATED", savedAudience);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "AUDIENCE_CREATED", savedAudience);
+
+        return savedAudience;
     }
 
+    @Transactional
     @Override
     public Audience update(String id, UpdateAudienceDTO updateDTO) {
         Audience existingAudience = audienceRepository.findById(id)
@@ -96,8 +106,17 @@ public class AudienceServices implements IAudienceServices{
         if (updateDTO.getAudience_date() != null) {
             existingAudience.setAudience_date(updateDTO.getAudience_date());
         }
+
+        LawyerProfile lawyer = existingAudience.getIdLawyer(); 
+
+        Audience updatedAudience = audienceRepository.save(existingAudience);
+
+
+        notificationService.sendNotificationAccount(lawyer.getId(), "AUDIENCE_UPDATED", updatedAudience);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "AUDIENCE_UPDATED", updatedAudience);
+
         // 3. Guardar y retornar
-        return audienceRepository.save(existingAudience);
+        return updatedAudience;
     }
 
     @Override
@@ -107,10 +126,22 @@ public class AudienceServices implements IAudienceServices{
         return convertToAudienceDTO(audience);
     }
 
+    @Transactional
     @Override
     public void delete(String id) {
-        if(!audienceRepository.existsById(id)) throw new EntityNotFoundException("No existe una audiencia con el id: " + id);
+        Audience audience = audienceRepository.findById(id).orElseThrow(
+            () -> new IllegalArgumentException("No existe una audiencia con el id: " + id)
+        );
+
+        LawyerProfile lawyer = audience.getIdLawyer(); 
+
         audienceRepository.deleteById(id);
+
+        Map<String, String> payload = Map.of("idAudience", id);
+
+        notificationService.sendNotificationAccount(lawyer.getId(), "AUDIENCE_DELETED", payload);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "AUDIENCE_DELETED", payload);        
+
     }
 
     @Override

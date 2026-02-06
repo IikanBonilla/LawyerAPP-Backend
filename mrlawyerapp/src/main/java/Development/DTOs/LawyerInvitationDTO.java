@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LawyerInvitationDTO {
     private String id;
-    private Long identification;
+    private String identification;
     private String email;
     private boolean used;
 }

@@ -2,6 +2,7 @@ package Development.Services;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,6 +25,8 @@ public class AppointmentServices implements IAppointmentServices{
     private AppointmentRepository appointmentRepository;
     @Autowired
     private LawyerRepository lawyerRepository;
+    @Autowired
+    private NotificationServices notificationService;
 
     @Override
     public Appointment saveForLaywer(String idLawyer, CreateAppointmentDTO appointmentDTO) {
@@ -36,7 +39,12 @@ public class AppointmentServices implements IAppointmentServices{
         appointment.setDateTime(appointmentDTO.getDateTime());
         appointment.setIdLawyer(lawyer);
 
-        return appointmentRepository.save(appointment);
+        Appointment newAppointment = appointmentRepository.save(appointment);
+
+        notificationService.sendNotificationAccount(idLawyer, "APPOINTMENT_CREATED", newAppointment);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "APPOINTMENT_CREATED", newAppointment);
+
+        return newAppointment;
     }
 
     @Override
@@ -56,18 +64,34 @@ public class AppointmentServices implements IAppointmentServices{
 
         appointment.setDateTime(appointmentDTO.getDateTime());
 
-        return appointmentRepository.save(appointment);
+        LawyerProfile lawyer = appointment.getIdLawyer();
+        Appointment appointmentUpdated = appointmentRepository.save(appointment);
+
+        notificationService.sendNotificationAccount(lawyer.getId(), "APPOINTMENT_UPDATED", appointmentUpdated);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "APPOINTMENT_UPDATED", appointmentUpdated);
+
+        return appointmentUpdated;
     }
 
     @Override
     public void delete(String id) {
-        if(!appointmentRepository.existsById(id))
-        throw new IllegalStateException("Ya existe una cita con id: ");
-       try{
-            appointmentRepository.deleteById(id);
-       }catch(Exception ex){
-            throw new RuntimeException("Error al eliminar cita" + ex);
-       }
+        
+        Appointment appointment = appointmentRepository.findById(id).orElseThrow(
+            () -> new IllegalArgumentException("No existe cita con ese id")
+        );
+
+        try{
+                appointmentRepository.deleteById(id);
+        }catch(Exception ex){
+                throw new RuntimeException("Error al eliminar cita" + ex);
+        }
+
+        LawyerProfile lawyer = appointment.getIdLawyer();
+
+        Map<String, String> payload = Map.of("idAppointment", id);
+
+        notificationService.sendNotificationAccount(lawyer.getId(), "APPOINTMENT_DELETED", payload);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "APPOINTMENT_DELETED", payload);
     }
 
     @Override

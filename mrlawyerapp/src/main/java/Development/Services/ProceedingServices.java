@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -12,20 +13,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import Development.Config.EmailConfig;
 import Development.DTOs.CreateProceedingDTO;
 import Development.DTOs.EmailBodyDTO;
 import Development.DTOs.GetClientFullNameDTO;
 import Development.DTOs.GetProceedingDTO;
+import Development.Model.ClientProcess;
+import Development.Model.LawyerProfile;
 import Development.Model.Proceeding;
 import Development.Model.Process;
+import Development.Repository.ClientProcessRepository;
 import Development.Repository.ClientRepository;
 import Development.Repository.ProceedingRepository;
 import Development.Repository.ProcessRepository;
 import Development.Events.ProceedingCreatedEvent;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.NonUniqueResultException;
-
 @Service
 public class ProceedingServices implements IProceedingServices{
 
@@ -42,6 +47,16 @@ public class ProceedingServices implements IProceedingServices{
     @Autowired
     private ApplicationEventPublisher eventPublisher;
 
+    @Autowired
+    private EmailConfig emailConfig;
+
+    @Autowired
+    private NotificationServices notificationService;
+
+    @Autowired
+    private ClientProcessRepository clientProcessRepository;
+
+    
 
     @Override
     public List<GetProceedingDTO> findByProcess(String idProcess) {
@@ -86,7 +101,17 @@ public class ProceedingServices implements IProceedingServices{
 
         Proceeding savedProceeding = proceedingRepository.save(proceeding);
 
+        ClientProcess cp = clientProcessRepository.findByIdProcessId(idProcess);
+
+        LawyerProfile lawyer = cp.getIdClient().getIdLawyer();
+
+        notificationService.sendNotificationAccount(lawyer.getId(), "PROCEEDING_CREATED", savedProceeding);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "PROCEEDING_CREATED", savedProceeding);
+        
+
+        if(emailConfig.isEmailEnabled()){
         sendProceedingEmail(savedProceeding, process, userEmail);
+        }
 
         return savedProceeding;
     }
@@ -127,11 +152,22 @@ public class ProceedingServices implements IProceedingServices{
         );
     }
 
+    @Transactional
     @Override
     public void delete(String id) {
-        if(!proceedingRepository.existsById(id)) 
-        throw new EntityNotFoundException("No existe una Actuacion con el id: " + id);
+        Proceeding proceeding = proceedingRepository.findById(id).orElseThrow(
+            () -> new IllegalArgumentException("No existe actuación con id: " + id)
+        );
         proceedingRepository.deleteById(id);
+
+        ClientProcess cp = clientProcessRepository.findByIdProcessId(proceeding.getIdProcess().getId());
+
+        LawyerProfile lawyer = cp.getIdClient().getIdLawyer();
+
+        Map<String, String> payload = Map.of("idProceeding", id);
+
+        notificationService.sendNotificationAccount(lawyer.getId(), "PROCEEDING_DELETED", payload);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "PROCEEDING_DELETED", payload);
     }
     
     private EmailBodyDTO buildSimpleHtmlEmail(Process process, Proceeding proceeding, 

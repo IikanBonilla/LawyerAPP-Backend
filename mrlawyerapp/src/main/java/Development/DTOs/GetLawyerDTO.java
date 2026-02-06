@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GetLawyerDTO {
     private String id;
-    private Long identification;
+    private String identification;
     private String fullName;
     private String email;
     private String idUser;

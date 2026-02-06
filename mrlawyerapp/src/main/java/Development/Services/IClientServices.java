@@ -14,7 +14,7 @@ public interface IClientServices{
     public Client updateClient(String idClient, ClientDTO clientDTO);
     public Client updateStatus(String idClient, Status status);
     public void deleteClient(String id);
-    public void deleteClientDefinitively(String id, String idUser, String adminPass);
+    public void deleteClientDefinitively(String id);
     public List<GetClientFullNameDTO> findByProcessId(String idProcess);
 
     

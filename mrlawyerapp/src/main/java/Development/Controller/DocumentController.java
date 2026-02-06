@@ -34,7 +34,6 @@ import Development.Model.Document;
 import Development.Services.DocumentServices;
 
 @RestController
-
 @RequestMapping("/api/document")
 public class DocumentController {
     
@@ -43,7 +42,7 @@ public class DocumentController {
     @Autowired
     private DocumentServices documentServices;
 
-    // ✅ UPLOAD - Guardar documento para Cliente
+    // UPLOAD - Guardar documento para Cliente
     @PostMapping("/client/{idClient}/upload")
     @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> uploadDocumentForClient(

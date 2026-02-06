@@ -5,22 +5,19 @@ import Development.DTOs.GetClientFullNameDTO;
 import Development.Model.Client;
 import Development.Model.LawyerProfile;
 import Development.Model.Status;
-import Development.Model.User;
 
-import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 import Development.Repository.ClientProcessRepository;
 import Development.Repository.ClientRepository;
 import Development.Repository.LawyerRepository;
 import Development.Repository.ProcessRepository;
-import Development.Repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,9 +33,9 @@ public class ClientServices implements IClientServices{
     private LawyerRepository lawyerRepository;
     @Autowired
     private ClientProcessRepository clientProcessRepository;
-
     @Autowired
-    private UserRepository userRepository;
+    private NotificationServices notificationService;
+
 
     private ClientDTO convertToClientDTO(Client client) {
     ClientDTO dto = new ClientDTO();
@@ -93,21 +90,15 @@ public class ClientServices implements IClientServices{
 
         Client savedClient = clientRepository.save(client);
 
+        notificationService.sendNotificationAccount(idLawyer, "CLIENT_CREATED", savedClient);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "CLIENT_CREATED", savedClient);
         //Crear asociacion a abogado
         return savedClient;
-        }catch (DataAccessException ex) {
-        // Verificar si es el error del trigger de email
-        Throwable rootCause = ex.getRootCause();
-        if (rootCause instanceof SQLException) {
-            SQLException sqlEx = (SQLException) rootCause;
-            // El código de error de tu trigger es 20020
-            if (sqlEx.getErrorCode() == 20020) {
-                throw new IllegalArgumentException("Formato de email inválido. Debe contener '@' y '.'");
-            }
+        }catch (Exception ex) {
+            throw new RuntimeException("Error interno: " + ex);
         }
-        // Si no es el error del trigger, relanzar la excepción
-        throw ex;
-        }
+
+
     }
 
 
@@ -133,6 +124,7 @@ public class ClientServices implements IClientServices{
         return convertToClientDTO(client);
     }
 
+    @Transactional
     @Override
     public void deleteClient(String id) {
         if (id == null || id.trim().isEmpty()) {
@@ -141,24 +133,30 @@ public class ClientServices implements IClientServices{
         Client client = clientRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
           
-            
+        LawyerProfile lawyer = client.getIdLawyer();
         // Verificar si tiene procesos activos antes de eliminar
+        if(!client.getAudiences().isEmpty()){
+            throw new IllegalArgumentException("No se puede eliminar cliente porque tiene: "+ client.getAudiences().size()+" audiencias activas");
+        }
+        if (!client.getDocuments().isEmpty()) {
+            throw new IllegalArgumentException("No se puede eliminar cliente porque tiene: "+ client.getDocuments().size()+" documentos asociados");
+        }
         if (!client.getProcesses().isEmpty()) {
-            throw new IllegalArgumentException("No se puede eliminar cliente con procesos activos");
+            throw new IllegalArgumentException("No se puede eliminar cliente porque tiene: "+ client.getProcesses().size()+" procesos activos");
         }
         clientRepository.deleteById(id);
+
+        Map<String, String> payload = Map.of("idClient", id);
+
+        notificationService.sendNotificationAccount(lawyer.getId(), "CLIENT_DELETED", payload);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "CLIENT_DELETED", payload);
     }
 
 
     @Override
     @Transactional
-    public void deleteClientDefinitively(String idClient, String idUser, String adminPass) {
-        User user = userRepository.findById(idUser)
-            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + idUser));
-            
-        if(!user.getPassword().equals(adminPass)){
-            throw new IllegalArgumentException("Contraseña de administrador incorrecta");
-        }
+    public void deleteClientDefinitively(String idClient) {
+
         // Validaciones básicas
         if (idClient == null || idClient.trim().isEmpty()) {
             throw new IllegalArgumentException("ID de cliente inválido");
@@ -170,8 +168,16 @@ public class ClientServices implements IClientServices{
         // Eliminar en cascada (más eficiente)
         clientProcessRepository.deleteAllByIdClientId(idClient);
         
+        LawyerProfile lawyer = client.getIdLawyer();
+
         // Eliminar client
-        clientRepository.delete(client);
+        clientRepository.deleteById(idClient);
+
+
+        Map<String, String> payload = Map.of("idClient", idClient);
+
+        notificationService.sendNotificationAccount(lawyer.getId(), "CLIENT_DELETED", payload);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "CLIENT_DELETED", payload);
     }
 
     @Override
@@ -185,13 +191,22 @@ public class ClientServices implements IClientServices{
                 throw new IllegalStateException("Ya existe un cliente con identificacion: " + clientDTO.getIdentification());
         }
 
+        LawyerProfile lawyer = existingClient.getIdLawyer();
+
         existingClient.setFirstName(clientDTO.getFirstName());
         existingClient.setLastName(clientDTO.getLastName());
         existingClient.setIdentification(clientDTO.getIdentification());
         existingClient.setEmail(clientDTO.getEmail());
         existingClient.setPhoneNumber(clientDTO.getPhoneNumber());
 
-        return clientRepository.save(existingClient);
+        Client updateClient = clientRepository.save(existingClient);
+
+        notificationService.sendNotificationAccount(lawyer.getId(), "CLIENT_UPDATED", updateClient);
+        notificationService.sendNotificationAdmin(lawyer.getIdLawFirm().getId(), "CLIENT_UPDATED", updateClient);
+
+        return updateClient;
+
+
     }
     @Override
     public Client updateStatus(String idClient, Status status) {

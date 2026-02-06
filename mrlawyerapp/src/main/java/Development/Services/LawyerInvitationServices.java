@@ -2,11 +2,14 @@ package Development.Services;
 
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import Development.Config.EmailConfig;
 import Development.DTOs.CreateLawyerInvitationDTO;
+import Development.DTOs.EmailBodyDTO;
 import Development.DTOs.LawyerInvitationDTO;
 import Development.Model.LawFirm;
 import Development.Model.LawyerInvitation;
@@ -21,6 +24,15 @@ public class LawyerInvitationServices implements ILawyerInvitationServices{
 
     @Autowired
     private LawyerInvitationRepository invitationRepository;
+
+    @Autowired
+    private NotificationServices notificationService;
+
+    @Autowired
+    private EmailConfig emailConfig;
+
+    @Autowired
+    private EmailServices emailService;
 
     @Override
     public LawyerInvitation createInvitation(String idFirm, CreateLawyerInvitationDTO invitationDTO) {
@@ -38,7 +50,25 @@ public class LawyerInvitationServices implements ILawyerInvitationServices{
         invitation.setIdentification(invitationDTO.getIdentification());
         invitation.setEmail(invitationDTO.getEmail());
         invitation.setIdLawFirm(firm);
-        return invitationRepository.save(invitation);
+
+        LawyerInvitation savedInvitation = invitationRepository.save(invitation);
+
+        if(emailConfig.isEmailEnabled()){
+        EmailBodyDTO bodyDTO = new EmailBodyDTO();
+        bodyDTO.setSubject("CREDENCIALES DE INGRESO MA LAWYER APP");
+        bodyDTO.setText("Estas son tus credenciales para registrar tu usuario en MA LAWYER APP aplicación para abogados \n\n"
+            + "EMAIL: " + invitationDTO.getEmail() 
+            + "\nNÚMERO DE IDENTIFICACIÓN: " + invitationDTO.getIdentification() 
+            + "\n\nEstos datos deberás ingresarlos en \'Email\' y \'Número de identificación\'"
+        );
+        bodyDTO.setTo(invitationDTO.getEmail());
+
+        emailService.sendSimpleMessage(bodyDTO);
+        }
+
+        notificationService.sendNotificationAdmin(invitation.getIdLawFirm().getId(), "INVITATION_CREATED", savedInvitation);
+
+        return savedInvitation;
         }catch(Exception ex){
             throw new RuntimeException("Error al ingresar invitación");
         }
@@ -55,6 +85,10 @@ public class LawyerInvitationServices implements ILawyerInvitationServices{
         }else{
             invitationRepository.delete(invitation);
         }
+
+        Map<String, String> payload = Map.of("idInvitation", id);
+
+        notificationService.sendNotificationAdmin(invitation.getIdLawFirm().getId(), "INVITATION_DELETED", payload);
     }
 
     @Override

@@ -1,6 +1,8 @@
 package Development.Config;
 
 
+import java.util.Arrays;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,8 +36,11 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) // Deshabilitar CSRF
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/login", "/auth/register", "/forgotPassword/verifyEmail", "/forgotPassword/verifyOTP/**", "/forgotPassword/changePassword/**", "/**").permitAll() // Permite todas las solicitudes
-                .anyRequest().authenticated()
+                // Api protegida
+                .requestMatchers("/api/**").authenticated()
+                
+                // Todo lo demas es publico
+                .anyRequest().permitAll()
 
             )
             .exceptionHandling(exception -> exception
@@ -48,7 +53,7 @@ public class SecurityConfig {
         @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOriginPattern("*");
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:*", "https://*.vercel.app"));
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(false);

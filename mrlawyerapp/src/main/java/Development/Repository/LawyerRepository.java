@@ -31,7 +31,7 @@ public interface LawyerRepository extends JpaRepository<LawyerProfile, String>{
     @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM LawyerProfile u WHERE u.idUser.email = ?1")
     boolean existsByEmail(String email); 
 
-    boolean existsByIdentification(Long identification);
+    boolean existsByIdentification(String identification);
 
     @Query("""
         SELECT new Development.DTOs.GetLawyerDTO(

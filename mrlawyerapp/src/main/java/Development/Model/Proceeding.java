@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Entity
-@Table(name = "Proceeding")
+@Table(name = "proceeding")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,6 +19,7 @@ import lombok.ToString;
 public class Proceeding{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 36)
     private String id;
 
     private String proceeding;

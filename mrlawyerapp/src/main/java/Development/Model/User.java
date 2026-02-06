@@ -18,13 +18,14 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name="User_Table")
+@Table(name="user_table")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class User implements UserDetails{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 36)
     private String id;
 
     private String username;

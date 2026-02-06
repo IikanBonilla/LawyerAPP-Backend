@@ -11,12 +11,12 @@ public class PasswordValidatorServices {
         }
 
         // Al menos una minúscula, una mayúscula y un número
-        String passwordPattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%*.,]).{8,}()$";
+        String passwordPattern = "^(?=.*[a-z])(?=.*\\d).{8,}$";
 
         return password.matches(passwordPattern);
     }
 
     public String getPasswordRequirements(){
-        return "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula y un número";
+        return "La contraseña debe tener al menos 8 caracteres, una letra minúscula y un número";
     }
 }

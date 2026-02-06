@@ -3,6 +3,7 @@ package Development.Services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,8 @@ public class AuthServices {
     private LawyerInvitationRepository invitationRepository;
     @Autowired
     private LawFirmRepository lawFirmRepository;
+    @Autowired
+    private NotificationServices notificationService;
     
     public AuthResponseDTO register(RegisterRequestDTO registerRequest) {
         if(userRepository.findAll().isEmpty()){
@@ -129,8 +132,12 @@ public class AuthServices {
         invitation.setUsed(true);
         invitationRepository.save(invitation);
 
+        
         // Generar el token JWT
         String token = jwtService.generateToken(savedUser, invitation.getIdLawFirm().getId());
+        
+        notificationService.sendNotificationAdmin(savedLawyer.getIdLawFirm().getId(), "LAWYER_CREATED", savedLawyer);
+
 
         return new AuthResponseDTO(
             token, 
@@ -144,9 +151,10 @@ public class AuthServices {
             invitation.getEmail(),
             savedLawyer.getStatus().toString()
         );
+
     }
 
-    public AuthResponseDTO login(LoginRequestDTO loginRequest) {
+    public AuthResponseDTO login(LoginRequestDTO loginRequest) {        
         try {
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -166,7 +174,7 @@ public class AuthServices {
             switch(user.getRole()) {
                 case ADMIN:
                     LawFirm lawFirm = lawFirmRepository.findByIdUserId(user.getId())
-                        .orElseThrow(() -> new RuntimeException("Admin no tiene firma asociada"));
+                        .orElseThrow(() -> new RuntimeException("No existe un administrador asociado al usuario: " + user.getUsername()));
                     idLawFirm = lawFirm.getId();
                     firmName = lawFirm.getFirmName();
                     fullName = "Administrador";
@@ -177,7 +185,7 @@ public class AuthServices {
                 case LAWYER:
                     GetLawyerDTO lawyer = lawyerRepository.findByIdUser(user.getId());
                     if(lawyer == null){
-                        throw new EntityNotFoundException("Abogado no encontrado para usuario:" + user.getId());
+                        throw new EntityNotFoundException("No existe un abogado asociado al usuario: " + user.getUsername());
                     }
                      // VERIFICAR ESTADO DEL ABOGADO
                     if (lawyer.getStatus() != Status.ACTIVE) {
@@ -214,7 +222,9 @@ public class AuthServices {
                 lawyerStatus
             );
 
-        } catch (AuthenticationException e) {
+        } catch(BadCredentialsException ex){
+            throw new RuntimeException(ex.getMessage());
+        }catch (AuthenticationException e) {
             throw new RuntimeException("Credenciales inválidas");
         }
     }

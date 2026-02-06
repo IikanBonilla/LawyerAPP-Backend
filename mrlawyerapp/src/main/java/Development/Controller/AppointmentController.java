@@ -19,7 +19,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 
 @RestController
-
 @RequestMapping("/api/appointments")
 public class AppointmentController {
     private Logger logger = LoggerFactory.getLogger(Appointment.class);

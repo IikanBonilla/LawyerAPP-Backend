@@ -11,13 +11,14 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Entity
-@Table(name="Audience")
+@Table(name="audience")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Audience {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 36)
     private String id;
 
     private String address;

@@ -11,13 +11,14 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Entity
-@Table(name = "Appointment")
+@Table(name = "appointment")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Appointment {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(length = 36)
     private String id;
     
     private String name;
