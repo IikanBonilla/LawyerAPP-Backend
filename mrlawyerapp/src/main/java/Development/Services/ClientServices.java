@@ -54,9 +54,17 @@ public class ClientServices implements IClientServices{
         if (idUser == null || idUser.trim().isEmpty()) {
             throw new IllegalArgumentException("ID de usuario inválido");
         }
-        
+
         try {
+         /*   List<ClientDTO> orderList = new ArrayList<>(); 
+            List<ClientDTO> clients = clientRepository.findByUserId(idUser);
+            for (int i = clients.size() -1; i >= 0; i--){
+                    orderList.add(clients.get(i));
+
+            }
+            */
             return clientRepository.findByUserId(idUser);
+
         }catch (Exception ex) {
             logger.error("Error obteniendo clientes para usuario {}", idUser, ex);
             throw new RuntimeException("Error al cargar la lista de clientes");

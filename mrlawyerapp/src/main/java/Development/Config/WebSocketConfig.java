@@ -19,7 +19,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry){
         registry.addEndpoint("/ws")
-        .setAllowedOriginPatterns("https://mrabogadosasociados.vercel.app");
+        .setAllowedOriginPatterns(
+            "http://localhost:9090",
+            "https://api.mrabogadosaso.com",
+            "https://mrabogadosaso.com",
+            "https://www.mrabogadosaso.com",
+            "wss://api.mrabogadosaso.com"
+        );
     }
     
 }

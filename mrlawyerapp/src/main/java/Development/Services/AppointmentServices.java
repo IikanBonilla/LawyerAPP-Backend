@@ -79,14 +79,14 @@ public class AppointmentServices implements IAppointmentServices{
         Appointment appointment = appointmentRepository.findById(id).orElseThrow(
             () -> new IllegalArgumentException("No existe cita con ese id")
         );
-
+        LawyerProfile lawyer = appointment.getIdLawyer();
         try{
                 appointmentRepository.deleteById(id);
         }catch(Exception ex){
                 throw new RuntimeException("Error al eliminar cita" + ex);
         }
 
-        LawyerProfile lawyer = appointment.getIdLawyer();
+        
 
         Map<String, String> payload = Map.of("idAppointment", id);
 

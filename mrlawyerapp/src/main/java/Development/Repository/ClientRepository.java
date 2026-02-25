@@ -21,13 +21,13 @@ public interface ClientRepository extends JpaRepository<Client, String>{
             c.lastName,
             c.email,
             c.phoneNumber,
-            c.status
+            c.status,
+            c.creationDate
         )
         FROM Client c
         JOIN c.idLawyer l
         JOIN l.idUser u
         WHERE u.id = :idUser
-        ORDER BY c.lastName, c.firstName
         """)
     List<ClientDTO> findByUserId(@Param("idUser") String idUser);
 
@@ -39,32 +39,18 @@ public interface ClientRepository extends JpaRepository<Client, String>{
             c.lastName,
             c.email,
             c.phoneNumber,
-            c.status
+            c.status,
+            c.creationDate
         )
         FROM Client c
         JOIN c.idLawyer l
         JOIN l.idUser u
         WHERE u.id = :idUser
         AND c.status = :status
-        ORDER BY c.lastName, c.firstName
+        ORDER BY c.creationDate DESC
         """)
     List<ClientDTO> findByUserIdAndStatus(@Param("idUser") String idUser, @Param("status") Status status);
 
-    @Query("""
-            SELECT new Development.DTOs.ClientDTO(
-            c.id,
-            c.identification,
-            c.firstName,
-            c.lastName,
-            c.email,
-            c.phoneNumber,
-            c.status
-            )
-            FROM Client c
-            WHERE LOWER(c.firstName) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
-            OR LOWER(c.lastName) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
-            """)
-    List<ClientDTO> searchClientsByName(@Param("searchTerm") String searchTerm);
 
     @Query("""
         SELECT new Development.DTOs.GetClientFullNameDTO(

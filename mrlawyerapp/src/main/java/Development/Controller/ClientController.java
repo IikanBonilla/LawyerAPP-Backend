@@ -35,9 +35,7 @@ public class ClientController {
     @GetMapping("/user/{idUser}")
     public ResponseEntity<?> getClientsByUserId(@PathVariable String idUser) {
         try{
-            logger.info("Buscando clientes para Usuario: {}", idUser);
             List<ClientDTO> clients = clientService.findByUserId(idUser);
-            logger.info("Clientes encontrados: {}", clients.size());
             return ResponseEntity.ok(clients);
         }catch(IllegalArgumentException ex){
             // Manejo de error de validación (400 Bad Request)
@@ -54,7 +52,6 @@ public class ClientController {
     public ResponseEntity<?> getClientById(@PathVariable String id) {
         try{
             ClientDTO client = clientService.findById(id);
-            logger.info("Cliente encontrado con id: " + id);
             return ResponseEntity.ok(client);
         }catch(IllegalArgumentException ex){
             // Manejo de error de validación (400 Bad Request)
@@ -72,7 +69,6 @@ public class ClientController {
     public ResponseEntity<?> saveClient(@PathVariable String idLawyer,@RequestBody ClientDTO clientDTO) {
         try{
             Client client = clientService.createClientForLawyer(idLawyer, clientDTO);
-            logger.info("Cliente ingresado: {}", client.getId(), client);
             return ResponseEntity.ok(client);
 
         }catch(IllegalArgumentException ex){
@@ -90,16 +86,23 @@ public class ClientController {
     @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> updateClient(@PathVariable String id, @RequestBody ClientDTO clientDTO) {
         try{
+
             Client client = clientService.updateClient(id, clientDTO);
-            logger.info("Cliente ingresado: {}", client.getId(), client);
             return ResponseEntity.ok(client);
+
         }catch(IllegalArgumentException ex){
+
             return ResponseEntity.badRequest().body(ex.getMessage());
+
         }catch(RuntimeException ex){
+
             //Manejo de error interno (500 Internal server error)
             return ResponseEntity.internalServerError().body(ex.getMessage());
+
         }catch(Exception ex){
+
             return ResponseEntity.internalServerError().body("Error inesperado al actualizar cliente");
+            
         }
         
     }

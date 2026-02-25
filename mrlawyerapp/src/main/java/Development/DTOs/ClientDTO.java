@@ -1,5 +1,7 @@
 package Development.DTOs;
 
+import java.time.LocalDateTime;
+
 import Development.Model.Status;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,4 +18,5 @@ public class ClientDTO {
     private String email;
     private Long phoneNumber;
     private Status status;
+    private LocalDateTime creationDate;
 }

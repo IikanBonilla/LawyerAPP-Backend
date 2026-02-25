@@ -5,7 +5,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -44,7 +43,6 @@ public class DocumentController {
 
     // UPLOAD - Guardar documento para Cliente
     @PostMapping("/client/{idClient}/upload")
-    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> uploadDocumentForClient(
             @PathVariable String idClient,
             @RequestParam("file") MultipartFile file) {
@@ -80,7 +78,6 @@ public class DocumentController {
 
     // ✅ UPLOAD - Guardar documento para Proceso
     @PostMapping("/process/{idProcess}/upload")
-    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> uploadDocumentForProcess(
             @PathVariable String idProcess,
             @RequestParam("file") MultipartFile file) {
@@ -180,7 +177,6 @@ public class DocumentController {
 
     // ✅ DELETE - Eliminar documento
     @DeleteMapping("/{id}/delete")
-    @PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> deleteDocument(@PathVariable String id) {
         try {
             logger.info("Eliminando documento ID: {}", id);

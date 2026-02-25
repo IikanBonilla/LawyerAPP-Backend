@@ -56,7 +56,7 @@ public class ProcessController {
     }
      // CREATE - Crear proceso para un cliente
     @PostMapping("/save/{idClient}")
-    @PreAuthorize("hasRole('LAWYER')")
+    //@PreAuthorize("hasRole('LAWYER')")
     public ResponseEntity<?> createProcessForClient(
             @PathVariable String idClient,
             @RequestBody CreateProcessDTO processDTO) {

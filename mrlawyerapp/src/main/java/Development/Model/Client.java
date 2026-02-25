@@ -1,6 +1,8 @@
 package Development.Model;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +38,7 @@ public class Client {
         @JsonIgnore
         @OneToMany(mappedBy = "idClient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
         private List<ClientProcess> processes = new ArrayList<>();
+
         
         @ToString.Exclude
         @JsonIgnore
@@ -52,6 +55,15 @@ public class Client {
         @JsonManagedReference
         @OneToMany(mappedBy = "idClient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
         private List<Audience> audiences = new ArrayList<>();
+
+        @Column(updatable = false)
+        private LocalDateTime creationDate;
+
+        @PrePersist
+        protected void onCreate(){
+                this.creationDate = LocalDateTime.now();
+        }
+        
 
 
 

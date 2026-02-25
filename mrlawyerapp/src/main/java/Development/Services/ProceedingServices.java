@@ -158,11 +158,11 @@ public class ProceedingServices implements IProceedingServices{
         Proceeding proceeding = proceedingRepository.findById(id).orElseThrow(
             () -> new IllegalArgumentException("No existe actuación con id: " + id)
         );
-        proceedingRepository.deleteById(id);
 
         ClientProcess cp = clientProcessRepository.findByIdProcessId(proceeding.getIdProcess().getId());
-
         LawyerProfile lawyer = cp.getIdClient().getIdLawyer();
+
+        proceedingRepository.deleteById(id);
 
         Map<String, String> payload = Map.of("idProceeding", id);
 

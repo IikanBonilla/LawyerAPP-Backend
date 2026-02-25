@@ -71,9 +71,9 @@ public class DocumentServices implements IDocumentServices{
 
     Client client = clientRepository.findById(idClient).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado con ID: " + idClient));
     
-    long maxSize = 10 * 1024 * 1024; // 10MB
+    long maxSize = 100 * 1024 * 1024; // 10MB
     if (file.getSize() > maxSize) {
-        throw new IllegalArgumentException("El archivo excede el tamaño máximo permitido (10MB)");
+        throw new IllegalArgumentException("El archivo excede el tamaño máximo permitido (100MB)");
     }
 
     Document document = new Document();
@@ -106,9 +106,9 @@ public class DocumentServices implements IDocumentServices{
         Process process = processRepository.findById(idProcess)
             .orElseThrow(() -> new IllegalArgumentException("Proceso no encontrado con ID: " + idProcess));
         
-        long maxSize = 10 * 1024 * 1024;
+        long maxSize = 100 * 1024 * 1024;
         if (file.getSize() > maxSize) {
-            throw new IllegalArgumentException("El archivo excede el tamaño máximo permitido (10MB)");
+            throw new IllegalArgumentException("El archivo excede el tamaño máximo permitido (100MB)");
         }
         
         Document document = new Document();

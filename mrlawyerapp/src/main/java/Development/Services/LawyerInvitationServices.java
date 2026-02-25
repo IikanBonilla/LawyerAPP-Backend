@@ -79,6 +79,9 @@ public class LawyerInvitationServices implements ILawyerInvitationServices{
         LawyerInvitation invitation = invitationRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("No existe invitación con id: " + id)
             );
+
+        LawFirm admin = invitation.getIdLawFirm();
+        
         if(invitation.getIdLawFirm() != null){
             invitation.setIdLawFirm(null);
             invitationRepository.delete(invitation);
@@ -88,7 +91,7 @@ public class LawyerInvitationServices implements ILawyerInvitationServices{
 
         Map<String, String> payload = Map.of("idInvitation", id);
 
-        notificationService.sendNotificationAdmin(invitation.getIdLawFirm().getId(), "INVITATION_DELETED", payload);
+        notificationService.sendNotificationAdmin(admin.getId(), "INVITATION_DELETED", payload);
     }
 
     @Override

@@ -51,7 +51,7 @@ public class LawyerInvitationController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteInvitation(@PathVariable String id){
         try{
-            logger.info("Eliminando cliente con id: ", id);
+            logger.info("Eliminando invitación con id: ", id);
             invitationService.deleteInvitation(id);
             return ResponseEntity.ok("Eliminado con exito");
         }catch(EntityNotFoundException ex){

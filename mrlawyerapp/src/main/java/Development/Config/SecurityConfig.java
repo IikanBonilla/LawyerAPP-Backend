@@ -53,7 +53,12 @@ public class SecurityConfig {
         @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:*", "https://*.vercel.app"));
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:9090",
+                        "http://localhost:4300",
+                        "https://api.mrabogadosaso.com", 
+                        "https://mrabogadosaso.com", 
+                        "https://www.mrabogadosaso.com", 
+                        "https://mr-abogados-asociados.vercel.app"));
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(false);
