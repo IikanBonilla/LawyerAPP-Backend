@@ -111,69 +111,77 @@ public class DocumentController {
         }
     }
 
-    // ✅ DOWNLOAD - Descargar documento
+    // DOWNLOAD - Descargar documento
     @GetMapping("/download/{id}")
     public ResponseEntity<byte[]> downloadDocument(@PathVariable String id) {
         try {
             logger.info("Descargando documento ID: {}", id);
-            
-            Document document = documentServices.downloadDocument(id);
-            
+
+            Document document = documentServices.findByIdDocument(id);
+
             if (document == null) {
                 return ResponseEntity.notFound().build();
             }
-            
-            logger.info("Documento encontrado - Nombre: {}, Tipo: {}", document.getOriginalName(), document.getType());
-            
+
+            byte[] data = documentServices.downloadDocument(id);
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.parseMediaType(document.getType()));
-            headers.setContentDispositionFormData("attachment", document.getOriginalName());
-            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
-            
-            return new ResponseEntity<>(document.getData(), headers, HttpStatus.OK);
-            
+            headers.setContentDisposition(
+                ContentDisposition.attachment()
+                    .filename(document.getOriginalName())
+                    .build()
+            );
+
+            return new ResponseEntity<>(data, headers, HttpStatus.OK);
+
         } catch (Exception ex) {
             logger.error("Error descargando documento: {}", ex.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
 
-    // ✅ PREVIEW - Ver documento (inline)
+    // PREVIEW - Ver documento (inline)
     @GetMapping("/preview/{id}")
     public ResponseEntity<byte[]> previewDocument(@PathVariable String id) {
         try {
             logger.info("Vista previa de documento ID: {}", id);
-            
-            Document document = documentServices.downloadDocument(id);
-            
+
+            Document document = documentServices.findByIdDocument(id);
+
             if (document == null) {
                 return ResponseEntity.notFound().build();
             }
-            
-            // Verificar si es un tipo de archivo que se puede previsualizar
+
             String contentType = document.getType();
-            if (contentType != null && 
-                (contentType.startsWith("image/") || 
-                 contentType.equals("application/pdf") ||
-                 contentType.startsWith("text/"))) {
-                
-                logger.info("Mostrando vista previa - Nombre: {}", document.getOriginalName());
-                
+
+            byte[] data = documentServices.downloadDocument(id);
+
+            if (contentType != null &&
+                (contentType.startsWith("image/") ||
+                contentType.equals("application/pdf") ||
+                contentType.startsWith("text/"))) {
+
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.parseMediaType(contentType));
-                headers.setContentDisposition(ContentDisposition.inline().filename(document.getOriginalName()).build());
-                
-                return new ResponseEntity<>(document.getData(), headers, HttpStatus.OK);
-            } else {
-                // Si no es previsualizable, forzar descarga
-                return downloadDocument(id);
+                headers.setContentDisposition(
+                    ContentDisposition.inline()
+                        .filename(document.getOriginalName())
+                        .build()
+                );
+
+                return new ResponseEntity<>(data, headers, HttpStatus.OK);
             }
-            
+
+            // fallback → descarga
+            return downloadDocument(id);
+
         } catch (Exception ex) {
             logger.error("Error en vista previa de documento: {}", ex.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
+    
 
     // ✅ DELETE - Eliminar documento
     @DeleteMapping("/{id}/delete")

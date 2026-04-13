@@ -13,7 +13,7 @@ public interface IDocumentServices{
     public DocumentResponseDTO saveDocumentForClient(MultipartFile file, String idClient) throws IOException;
     public Document findByIdDocument(String id);
     public void deleteDocument(String id);
-    public Document downloadDocument(String id);
+    public byte[] downloadDocument(String id) throws IOException;
     public Long countByIdClientId(String clientId);
     public Long countByIdProcessId(String idProcess);
     public List<DocumentMetadataDTO> getDocumentsByIdProcess(String idProcess);

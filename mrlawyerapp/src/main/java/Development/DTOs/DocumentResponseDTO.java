@@ -11,4 +11,5 @@ public class DocumentResponseDTO {
     private String id;
     private String type;
     private String originalName;
+    private Long size;
 }

@@ -16,7 +16,7 @@ public class ClientDTO {
     private String firstName;
     private String lastName;
     private String email;
-    private Long phoneNumber;
+    private String phoneNumber;
     private Status status;
     private LocalDateTime creationDate;
 }

@@ -26,6 +26,8 @@ public class Document {
     @Lob
     private byte[] data;
     
+    private String filePath;
+    private Long size;
 
     @ToString.Exclude
     @JsonBackReference

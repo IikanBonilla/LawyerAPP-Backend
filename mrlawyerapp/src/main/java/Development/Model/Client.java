@@ -30,7 +30,7 @@ public class Client {
         private String firstName;
         private String lastName;
         private String email;
-        private Long phoneNumber;
+        private String phoneNumber;
         @Enumerated(EnumType.STRING)
         private Status status = Status.ACTIVE;
         

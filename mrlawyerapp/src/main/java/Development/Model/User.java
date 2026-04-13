@@ -54,14 +54,4 @@ public class User implements UserDetails{
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
-    @Override
-    public String getPassword() {
-        return this.password;
-    }
-
-    @Override
-    public String getUsername() {
-        return this.username;
-    }
-
 }

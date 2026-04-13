@@ -37,6 +37,8 @@ public class DocumentServices implements IDocumentServices{
     private NotificationServices notificationService;
     @Autowired
     private ClientProcessRepository clientProcessRepository;
+    @Autowired
+    private FileStorageService fileStorageService;
 
     /**
      * Convierte entidad Document a DocumentResponseDTO
@@ -46,6 +48,7 @@ public class DocumentServices implements IDocumentServices{
         dto.setId(document.getId());
         dto.setType(document.getType());
         dto.setOriginalName(document.getOriginalName());
+        dto.setSize(document.getSize());
         return dto;
     }
 
@@ -71,15 +74,19 @@ public class DocumentServices implements IDocumentServices{
 
     Client client = clientRepository.findById(idClient).orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado con ID: " + idClient));
     
-    long maxSize = 100 * 1024 * 1024; // 10MB
+    long maxSize = 1000 * 1024 * 1024; // 1GB
     if (file.getSize() > maxSize) {
         throw new IllegalArgumentException("El archivo excede el tamaño máximo permitido (100MB)");
     }
 
+    String path = fileStorageService.saveFile(file, "clients/" + idClient);
+
     Document document = new Document();
     document.setType(file.getContentType());
     document.setOriginalName(StringUtils.cleanPath(file.getOriginalFilename()));
-    document.setData(file.getBytes());
+    document.setFilePath(path);
+    document.setSize(file.getSize());
+    document.setData(null); // No guardamos el contenido en la BD
     document.setIdClient(client); // Asignas el proceso completo
     
     LawyerProfile lawyer = client.getIdLawyer();
@@ -106,15 +113,19 @@ public class DocumentServices implements IDocumentServices{
         Process process = processRepository.findById(idProcess)
             .orElseThrow(() -> new IllegalArgumentException("Proceso no encontrado con ID: " + idProcess));
         
-        long maxSize = 100 * 1024 * 1024;
+        long maxSize = 1000 * 1024 * 1024; //1GB
         if (file.getSize() > maxSize) {
-            throw new IllegalArgumentException("El archivo excede el tamaño máximo permitido (100MB)");
+            throw new IllegalArgumentException("El archivo excede el tamaño máximo permitido (1GB)");
         }
+
+        String path = fileStorageService.saveFile(file, "processes/" + idProcess);
         
         Document document = new Document();
         document.setType(file.getContentType());
         document.setOriginalName(StringUtils.cleanPath(file.getOriginalFilename()));
-        document.setData(file.getBytes());
+        document.setFilePath(path);
+        document.setSize(file.getSize());
+        document.setData(null);        
         document.setIdProcess(process);
         // idClient queda null
         
@@ -133,9 +144,23 @@ public class DocumentServices implements IDocumentServices{
     }
 
     @Override
-    public Document downloadDocument(String id){
-        return documentRepository.findById(id).get();
+    public byte[] downloadDocument(String id) throws IOException {
+        Document document = documentRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Documento no encontrado con ID: " + id)
+        );
+
+        if (document.getFilePath() != null) {
+        return fileStorageService.loadFile(document.getFilePath());
+        }
+
+        // Si aún está en BD
+        if (document.getData() != null) {
+            return document.getData();
+        }
+
+        throw new RuntimeException("Documento sin contenido");
     }
+
     @Override
     public void deleteDocument(String id) {
         Document document = this.documentRepository.findById(id)
